@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Smileplayer 2.0</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" type="text/css" href="../dist/smileplayer.css">
+
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../dist/smileplayer-me.min.js"></script>
+
+    <script>
+        var player;
+        $(document).ready(function () {
+            $('.smile-player').smile();
+            player = $('.smile-player')[0].smile;
+        });
+    </script>
+
+</head>
+
+<body>
+    <div class="smile-player" data-smile="hideNativeTracks, displays, enablePluginDebug, css, controls">
+        <div class="smile-area">
+            <video id="video1" poster="http://media.w3.org/2010/05/sintel/poster.png" preload="metadata">
+                <source src="http://media.w3.org/2010/05/sintel/trailer.mp4" type="video/mp4" />
+                <source src="http://media.w3.org/2010/05/sintel/trailer.webm" type="video/webm" />
+                <source src="http://media.w3.org/2010/05/sintel/trailer.ogv" type="video/ogg" />
+                <track kind="subtitles" src="subtitles.vtt" id="video1-track-subtitles-en" srclang="en" default="default" />
+                <track kind="metadata" src="slides.vtt" id="video1-track-slides-en" srclang="en" default="default" mode="enabled"/>
+            </video>
+            <div class="smile-display smile-subtitles" data-smile="track: video1-track-subtitles, visibleOnCue"></div>
+        </div>
+        <div class="smile-controls">
+            <a href="#" class="smile-button-play play"></a>
+            <a href="#" class="smile-button-fullscreen"></a>
+            <div class="smile-volume-progress"><div class="smile-volume-progress-bar"></div></div>
+            <a href="#" class="smile-button-volume"></a>
+            <div class="smile-time-display">00:00</div>
+            <div class="smile-time-progress">
+                <div class="smile-time-progress-bar" style="width: 0%;"></div><div class="smile-time-progress-buffer" style="width: 0%;"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

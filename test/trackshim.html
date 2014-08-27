@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mediaelement trackshim tests</title>
+  <link rel="stylesheet" href="../bower_components/qunit/qunit/qunit.css" />
+</head>
+<body>
+  <h1 id="qunit-header">Mediaelement trackshim tests</h1>
+  <h2 id="qunit-banner"></h2>
+  <div id="qunit-testrunner-toolbar"></div>
+  <h2 id="qunit-userAgent"></h2>
+  <ol id="qunit-tests"></ol>
+  <div id="qunit-fixture"></div>
+  <div id="something"></div>
+
+  <!-- scripts -->
+
+  <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+  
+  <script src="../bower_components/qunit/qunit/qunit.js"></script>
+  
+  <!-- while blanket is neat, it is unaccurate!!! try adding console.log to trackshim.js's ajax success, it happens but coverage says it doesn't -->
+  <script src="../bower_components/blanket/dist/qunit/blanket.js"></script>
+
+  <!-- dependencies -->
+
+  <script src="../bower_components/mediaelement/build/mediaelement.js"></script>
+
+  <!-- Load local lib and tests. -->
+  <script src="../src/EventDispatcher.js"></script>
+  <script src="../src/TrackFormatParser.js"></script>
+  <script src="../src/util.js"></script>
+  <script src="../src/trackshim.js" data-cover></script>
+
+  <script src="trackshim.js"></script>
+
+  <!-- Removing access to jQuery and $. But it'll still be available as _$, if
+       you REALLY want to mess around with jQuery in the console. REMEMBER WE
+       ARE TESTING YOUR PLUGIN HERE -->
+  <!--script>window._$ = jQuery.noConflict(true);</script-->
+
+</body>
+</html>

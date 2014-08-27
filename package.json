@@ -1,0 +1,17 @@
+{
+  "name": "smile",
+  "title": "Smile video player",
+  "version": "2.0.0-alpha",
+  "description": "Advanced HTML5 player based on mediaelement.js with track support",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nejc Jelovčan",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-contrib-concat": "~0.5.0",
+    "grunt-contrib-uglify": "~0.5.0"
+  }
+}

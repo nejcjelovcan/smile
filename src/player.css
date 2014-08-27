@@ -1,0 +1,50 @@
+.smile-player {
+    background-color: black;
+    position: relative;
+}
+
+.smile-area {
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.smile-area:after {
+    padding-top: 32%;
+    display: block;
+    content: '';
+}
+
+.smile-player video, .smile-player div.me-plugin {
+    position: absolute;
+    top: 0; bottom: 0; right: 0; left: 0;
+    width: 100% !important;
+    height: auto !important;
+}
+
+.smile-subtitles {
+    position: absolute;
+    font-size: 18px;
+    font-family: sans-serif;
+    font-weight: bold;
+    z-index: 10;
+    margin: auto;
+    padding: 4px 10px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.7);
+    line-height: 28px;
+    text-align: center;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+@media (min-width: 600px) {
+    .smile-subtitles {
+        left: 50%;
+        -webkit-transform: translateX(-50%);
+        -moz-transform: translateX(-50%);
+        -ms-transform: translateX(-50%);
+        bottom: 5px;
+    }
+}

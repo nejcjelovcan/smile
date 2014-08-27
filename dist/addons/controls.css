@@ -1,0 +1,107 @@
+.smile-controls {
+    height: 40px;
+    background-color: black;
+    z-index: 10;
+    top: -4px;
+    position: relative;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 18px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.smile-controls > * {
+    color: white;
+    text-decoration: none;
+    padding: 12px 6px 12px 6px;
+    display: inline-block;
+}
+.smile-controls a:hover {
+    color: hotpink;
+}
+
+.smile-button-play {
+    float: left;
+}
+
+.smile-time-display,
+.smile-volume-progress,
+.smile-button-fullscreen,
+.smile-button-volume {
+    float: right;
+}
+
+.smile-time-progress {
+    display: block;
+    overflow: hidden;
+}
+
+.smile-button-play:after {
+    content: 'play';
+}
+
+.smile-button-play.pause:after {
+    content: 'pause';
+}
+
+.smile-button-volume:after{
+    content: 'vol';
+    color: gray;
+}
+
+.smile-button-volume.vol3:after {
+    content: 'vol|||';
+    color: white;
+}
+
+.smile-button-volume.vol2:after {
+    content: 'vol||';
+    color: white;
+}
+
+.smile-button-volume.vol1:after {
+    content: 'vol|';
+    color: white;
+},
+
+.smile-button-volume.vol0:after {
+    content: 'vol0';
+    color: white;
+}
+
+.smile-button-fullscreen:after {
+    content: 'fscr';
+}
+
+.smile-time-progress,
+.smile-volume-progress {
+    height: 30px;
+    margin: 5px 5px 5px 5px;
+    padding: 0px;
+    border: 1px solid #AAA;
+    background-color: #222
+}
+
+.smile-time-progress .smile-time-progress-bar,
+.smile-time-progress .smile-time-progress-buffer,
+.smile-volume-progress .smile-volume-progress-bar {
+    height: 30px;
+    background-color: hotpink;
+    display: inline-block;
+}
+
+.smile-time-progress .smile-time-progress-buffer {
+    background-color: #777;
+}
+
+.smile-volume-progress {
+    width: 100px;
+}
+
+@media (max-width: 600px) {
+    .smile-volume-progress {
+        width: 50px;
+        display: none;
+    }
+}

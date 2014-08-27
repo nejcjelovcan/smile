@@ -1,0 +1,13 @@
+WEBVTT FILE
+
+one1
+00:00:00.000 --> 00:00:05.000
+{"title": "whatever", "images":[{"src": "https://media.viidea.com/v003/27/e76rjowh5sf5bl6twh4ybmu622t6swfw.jpg", "width": 960, "height": 741}]}
+
+two2
+00:00:05.000 --> 00:00:09.000
+{"title": "something else", "images":[{"src": "https://media.viidea.com/v003/09/bfgsyy4rhebnrbwzikqzbfc46fvynaw3.jpg", "width": 960, "height": 741}]}
+
+three3
+00:00:09.000 --> 01:01:14.000
+{"title": "another cue", "images":[{"src": "https://media.viidea.com/v003/cf/z5j37eap2brw2nsekppiyan3lm4ox4zf.jpg", "width": 960, "height": 741}]}

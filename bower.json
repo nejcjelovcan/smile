@@ -1,0 +1,18 @@
+{
+  "name": "smileplayer",
+  "title": "Smileplayer",
+  "version": "2.0.0-alpha",
+  "description": "Advanced HTML5 track player with partial smil support",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nejc Jelovčan",
+  "license": "ISC",
+  "dependencies": {
+    "mediaelement": "2.14.2",
+    "underscore": "1.6.0",
+    "jquery": "2.1.1",
+    "jquery.metadata": ""
+  }
+}

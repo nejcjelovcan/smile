@@ -1,15 +1,16 @@
 .smile-player {
     background-color: black;
     position: relative;
+    width: 100%;
 }
 
-.smile-area {
+.smile-media {
     width: 100%;
     position: relative;
     z-index: 1;
 }
 
-.smile-area:after {
+.smile-media:after {
     padding-top: 32%;
     display: block;
     content: '';

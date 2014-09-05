@@ -101,7 +101,7 @@
     */
     smile.Player = function (node, options) {
         if (! (this instanceof smile.Player)) return new smile.Player(node, options);
-        smile.util.bindAll(this, ['initializeDisplays', 'onMediaReady', 'onHandleError']);
+        smile.util.bindAll(this, ['initializeDisplays', 'onMediaReady', 'onHandleError', 'resize']);
         options || (options = {});
         this.smileReadyState = 1;
 
@@ -159,6 +159,7 @@
             }
         }
 
+        $(window).resize($.debounce(200, this.resize));
         return this;
     };
 
@@ -234,6 +235,9 @@
             return true;
         },
 
+        resize: function () {
+        },
+
         /**
             Call function when player and tracks are ready
         */
@@ -268,7 +272,7 @@
 
         updateRatio: function (ratio) {
             if (typeof ratio != 'number' || !ratio) ratio = this.getVideoRatio();
-            smile.util.addCssRule('#'+this.$container.attr('id')+' .smile-area:after', 'padding-top: '+(100/ratio)+'%;');
+            smile.util.addCssRule('#'+this.$container.attr('id')+' .smile-media:after', 'padding-top: '+(100/ratio)+'%;');
         },
 
         /**

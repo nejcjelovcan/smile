@@ -855,8 +855,8 @@ EventDispatcher.prototype = {
     }
 
 }(jQuery, mejs));
-(function (window, $) {
-    var smile = window.smile = {};
+var smile = {};
+(function ($, smile) {
 
     // Object literal parsing (derived from knockout.js binding/expressionRewriting.js)
     var javaScriptReservedWords = ["true", "false", "null", "undefined"],
@@ -1004,6 +1004,29 @@ EventDispatcher.prototype = {
         },
 
         /**
+            Parse integer time_ms from string
+
+            Expected format: [[HH":"]MM":"]SS["."000]
+            If non string is passed, it is returned as integer/float
+
+            @param  {String}    str
+            @type   Integer
+        */
+        parseTime: function (str) {
+            var spl = str.split(':'),
+                secs = 0.0;
+            for(var i = spl.length - 1; i >= 0; i -= 1) {
+                if (i === spl.length - 1) {
+                    secs += parseFloat(spl[i], 10);
+                } else {
+                    secs += Math.pow(60, spl.length - 1 - i)*parseInt(spl[i], 10);
+                }
+            }
+            if (secs !== secs) return 0;
+            return ~~(secs * 1000);
+        },
+
+        /**
             Pad string
             <p>
             e.g. pad(1, 2) -> "01"
@@ -1058,7 +1081,7 @@ EventDispatcher.prototype = {
     };
 
 
-}(window, jQuery));
+}(jQuery, smile));
 (function ($, mejs, smile) {
 
     /**
@@ -1162,7 +1185,7 @@ EventDispatcher.prototype = {
     */
     smile.Player = function (node, options) {
         if (! (this instanceof smile.Player)) return new smile.Player(node, options);
-        smile.util.bindAll(this, ['initializeDisplays', 'onMediaReady', 'onHandleError']);
+        smile.util.bindAll(this, ['initializeDisplays', 'onMediaReady', 'onHandleError', 'resize']);
         options || (options = {});
         this.smileReadyState = 1;
 
@@ -1220,6 +1243,7 @@ EventDispatcher.prototype = {
             }
         }
 
+        $(window).resize($.debounce(200, this.resize));
         return this;
     };
 
@@ -1295,6 +1319,9 @@ EventDispatcher.prototype = {
             return true;
         },
 
+        resize: function () {
+        },
+
         /**
             Call function when player and tracks are ready
         */
@@ -1329,7 +1356,7 @@ EventDispatcher.prototype = {
 
         updateRatio: function (ratio) {
             if (typeof ratio != 'number' || !ratio) ratio = this.getVideoRatio();
-            smile.util.addCssRule('#'+this.$container.attr('id')+' .smile-area:after', 'padding-top: '+(100/ratio)+'%;');
+            smile.util.addCssRule('#'+this.$container.attr('id')+' .smile-media:after', 'padding-top: '+(100/ratio)+'%;');
         },
 
         /**
@@ -1564,6 +1591,9 @@ EventDispatcher.prototype = {
 (function ($, smile) {
 
     smile.Player.registerExtension('displays', {
+        initialize: function () {
+            smile.util.bindAll(this, ['resize']);
+        },
         ready: function () {
             var that = this;
             this.displays = [];
@@ -1589,22 +1619,32 @@ EventDispatcher.prototype = {
                     console.warn('Smile display expects track parameter');
                 }
             });
+        },
+        resize: function (event) {
+            $.each(this.displays||[], function (i, display) {
+                if (display.resize) display.resize();
+            });
         }
     });
 
     /**
         Display
-        if you want to hide it, use track.setMode('disabled') - mode 'hidden' is used for hiding native renderers
+        If you want to hide it, use track.setMode('disabled') - mode 'hidden' is used for hiding native renderers
             if you still need the track to fire, just hide container
+        Will toggle .active class on cue views
+        By default will also toggle display css property (except if options.toggleDisplay == false)
+        
+        Also, all <*> elements in display container with data-time="" value will seek video position on button click
 
-        @param  options                 Object
-        @param  options.container       HTMLElement|jQuery  container element
-        @param  options.player          smile.Player        player instance
-        @param  options.track           smile.Track         track instance
-        @param  options.visibleOnCue    Boolean             wether to hide display when no cue is active
-        @param  options.onlyShim        Boolean             only show display when shim is active (default: false)
+        @param  options                     Object
+        @param  options.container           HTMLElement|jQuery  container element
+        @param  options.player              smile.Player        player instance
+        @param  options.track               smile.Track         track instance
+        @param  options.toggleDisplay       Boolean             whether to toggle display when cue is active/inactive (defaul: true; otherwise only active class gets toggled)
+        @param  options.visibleOnCue        Boolean             whether to hide display when no cue is active
+        @param  options.onlyShim            Boolean             only show display when shim is active (default: false)
                                                             (shim is active means that both media element is native and track support is native)
-        @param  options.autoLanguage    Boolean             automatically handle language change (default: true)
+        @param  options.autoLanguage        Boolean             automatically handle language change (default: true)
     */
     smile.Display = function (options) {
         if (!options.container) throw new Error("Display needs container");
@@ -1613,6 +1653,7 @@ EventDispatcher.prototype = {
         this.player = options.player;
         this.cues = {};
         this.visibleOnCue = options.visibleOnCue || false;
+        this.toggleDisplay = typeof options.toggleDisplay == 'undefined' ? true : !!options.toggleDisplay;
         if (this.visibleOnCue) this.$container.hide();
         this.onlyShim = options.onlyShim || false;
         this.autoLanguage = typeof options.autoLanguage == 'undefined' ? true : options.autoLanguage;
@@ -1650,6 +1691,7 @@ EventDispatcher.prototype = {
                     this.cues[cue.id] = this.renderCue(cue);
                 }
             }
+            smile.Display.hookTimeLinkEvents(this.$container, this.player);
         },
         renderCue: function (cue) {
             return { 
@@ -1679,17 +1721,36 @@ EventDispatcher.prototype = {
         },
         onCueChange: function () {
             var trackId = this.track.id,
+                show = false,
+                toggleDisplay = this.toggleDisplay,
                 activeIds = $.map(this.track.activeCues||[], function (cue) {
                     return trackId + '-cue-' + cue.id;
                 });
             if (this.visibleOnCue) this.$container[activeIds.length ? 'show' : 'hide']();
             // show active cues / hide inactive
             this.$container.find('.smile-cue').each(function () {
-                $(this).toggle(activeIds.indexOf($(this).attr('id')) > -1);
+                show = activeIds.indexOf($(this).attr('id')) > -1;
+                $(this).toggleClass('active', show);
+                if (toggleDisplay) $(this).toggle(show);
             });
+        },
+        resize: function () {
+        },
+        getRatio: function () {
+            return 4/3;
         }
     });
     
+    smile.Display.hookTimeLinkEvents = function (container, player) {
+        container.find('*[data-time]').each(function () {
+            var $el = $(this), time = parseFloat($el.attr('data-time'))+0.1;
+            $el.on('click', function (event) {
+                event.preventDefault();
+                player.media.setCurrentTime(time);
+            });
+        });
+    };
+
     /**
         DisplaySlides
 
@@ -1704,6 +1765,7 @@ EventDispatcher.prototype = {
     */
     smile.DisplaySlides = function (options) {
         smile.Display.apply(this, [options]);
+        this._ratio = 4/3;
     };
     $.extend(smile.DisplaySlides.prototype, smile.Display.prototype, {
         renderCue: function (cue) {
@@ -1711,6 +1773,27 @@ EventDispatcher.prototype = {
                 cueView = smile.Display.prototype.renderCue.apply(this, [cue]);
             cueView.el.empty().append($('<img>').attr({src: cueData.images[0].src, title: cueData.title}));
             return cueView;
+        },
+        render: function () {
+            smile.Display.prototype.render.apply(this);
+            var ratios = [],
+                cueData;
+            for (var i = 0; i < this.track.cues.length; i += 1) {
+                cueData = JSON.parse(this.track.cues[i].text);
+                if (cueData.images && cueData.images.length) {
+                    if (cueData.images[0].width && cueData.images[0].height) {
+                        ratios.push(cueData.images[0].width/cueData.images[0].height)
+                    }
+                }
+            }
+
+            if (ratios.length) {
+                ratios.sort(function (a, b) { return a - b; });
+                this._ratio = ratios[Math.floor(ratios.length/2)];
+            }
+        },
+        getRatio: function () {
+            return this._ratio;
         }
     });
 

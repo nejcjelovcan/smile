@@ -1,5 +1,5 @@
-(function (window, $) {
-    var smile = window.smile = {};
+var smile = {};
+(function ($, smile) {
 
     // Object literal parsing (derived from knockout.js binding/expressionRewriting.js)
     var javaScriptReservedWords = ["true", "false", "null", "undefined"],
@@ -147,6 +147,29 @@
         },
 
         /**
+            Parse integer time_ms from string
+
+            Expected format: [[HH":"]MM":"]SS["."000]
+            If non string is passed, it is returned as integer/float
+
+            @param  {String}    str
+            @type   Integer
+        */
+        parseTime: function (str) {
+            var spl = str.split(':'),
+                secs = 0.0;
+            for(var i = spl.length - 1; i >= 0; i -= 1) {
+                if (i === spl.length - 1) {
+                    secs += parseFloat(spl[i], 10);
+                } else {
+                    secs += Math.pow(60, spl.length - 1 - i)*parseInt(spl[i], 10);
+                }
+            }
+            if (secs !== secs) return 0;
+            return ~~(secs * 1000);
+        },
+
+        /**
             Pad string
             <p>
             e.g. pad(1, 2) -> "01"
@@ -201,4 +224,4 @@
     };
 
 
-}(window, jQuery));
+}(jQuery, smile));

@@ -75,10 +75,19 @@
         */
         updateRatio: function (ratio) {
             var videoSize = {
-                ratio: this.getVideoRatio()
-            };
-            this.setAreaSizes(videoSize, {"width": 960, "height": 741});
+                    ratio: this.getVideoRatio()
+                },area2Size = {
+                    ratio: this.getArea2Ratio()
+                };
+            this.setAreaSizes(videoSize, area2Size);
             this.updateAreaView();
+        },
+        getArea2Ratio: function () {
+            var display = this._areas.area2[0].smileDisplay;
+            if (display && display.getRatio) {
+                return display.getRatio();
+            }
+            return 4/3;
         },
         /**
             Switch left and right area

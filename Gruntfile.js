@@ -37,6 +37,13 @@ module.exports = function(grunt) {
                 ],
                 dest: 'dist/smileplayer-me.js'
             },
+            'mediaelement-full': {
+                src: [
+                    'dist/smileplayer-me.js',
+                    'src/addons/areas.js'
+                ],
+                dest: 'dist/smileplayer-full.js'
+            },
             addons: {
                 files: [{
                     expand: true,
@@ -51,6 +58,13 @@ module.exports = function(grunt) {
                     'src/addons/controls.css',
                 ],
                 dest: 'dist/smileplayer.css'
+            },
+            'css-full': {
+                src: [
+                    'dist/smileplayer.css',
+                    'dist/addons/areas.css'
+                ],
+                dest: 'dist/smileplayer-full.css'
             }
         },
         uglify: {
@@ -59,6 +73,7 @@ module.exports = function(grunt) {
                     'dist/smileplayer-base.min.js': ['dist/smileplayer-base.js'],
                     'dist/smileplayer.min.js': ['dist/smileplayer.js'],
                     'dist/smileplayer-me.min.js': ['dist/smileplayer-me.js'],
+                    'dist/smileplayer-full.min.js': ['dist/smileplayer-full.js']
                 }
             },
             addons: {
@@ -72,7 +87,8 @@ module.exports = function(grunt) {
         }
     });
 
-    grunt.registerTask('build', ['concat:base', 'concat:player', 'concat:css', 'concat:addons', 'concat:mediaelement', 'uglify:player', 'uglify:addons']);
+    grunt.registerTask('build', ['concat:base', 'concat:player', 'concat:css', 'concat:addons', 'concat:mediaelement', 'concat:mediaelement-full', 'concat:css-full',
+        'uglify:player', 'uglify:addons']);
     grunt.registerTask('default', ['build']);
 
 };

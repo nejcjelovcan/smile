@@ -2182,6 +2182,7 @@ EventDispatcher.prototype = {
     }
 
     function setTrackNode (track) {
+        console.log('SET TRACK NODE');
         $('track').each(function () {
             if (this.track && !this.track.node && (!track || this.track === track)) {
                 this.track.node = this;
@@ -2358,8 +2359,9 @@ EventDispatcher.prototype = {
             return this.mode;
         },
         ready: function (f) {
-            var node = this.node;
+            var node = this.node || (this.id && $('#'+this.id)[0]);  // @TODO
             if (node) {
+                console.log('READY', '#'+this.id, (node.readyState||node._readyState), f);
                 if ((node.readyState||node._readyState) === 2 || (node.readyState||node._readyState) === 3) {
                     setTimeout(f, 0);
                 } else {
@@ -3002,6 +3004,24 @@ var smile = {};
         addCssRule: function (selector, css) {
             if (document.styleSheets[0].addRule) document.styleSheets[0].addRule(selector, css);
             else if (document.styleSheets[0].insertRule) document.styleSheets[0].insertRule(selector+'{'+css+'}', 0);
+        },
+
+        /**
+            Convert string to XML Document
+            @param  {String}    str
+            @type   XMLDocument
+        */
+        stringToDoc: function (str) {
+            var doc, parser;
+            if (window.ActiveXObject){
+                doc = new ActiveXObject('Microsoft.XMLDOM');
+                doc.async='false';
+                doc.loadXML(str);
+            } else {
+                parser = new DOMParser();
+                doc = parser.parseFromString(str, 'text/xml');
+            }
+            return doc;
         }
 
         
@@ -3009,6 +3029,73 @@ var smile = {};
 
     $.fn.dataObject = function (attrName) {
         return smile.util.parseObjectLiteral($(this).data(attrName));
+    };
+
+
+    $.throttle = jq_throttle = function( delay, no_trailing, callback, debounce_mode ) {
+        var timeout_id,
+            last_exec = 0;
+    
+        // `no_trailing` defaults to falsy.
+        if ( typeof no_trailing !== 'boolean' ) {
+            debounce_mode = callback;
+            callback = no_trailing;
+            no_trailing = undefined;
+        }
+    
+        function wrapper() {
+            var that = this,
+                elapsed = +new Date() - last_exec,
+                args = arguments;
+          
+            // Execute `callback` and update the `last_exec` timestamp.
+            function exec() {
+                last_exec = +new Date();
+                callback.apply( that, args );
+            };
+          
+            // If `debounce_mode` is true (at_begin) this is used to clear the flag
+            // to allow future `callback` executions.
+            function clear() {
+                timeout_id = undefined;
+            };
+          
+            if ( debounce_mode && !timeout_id ) {
+                // Since `wrapper` is being called for the first time and
+                // `debounce_mode` is true (at_begin), execute `callback`.
+                exec();
+            }
+          
+            // Clear any existing timeout.
+            timeout_id && clearTimeout( timeout_id );
+          
+            if ( debounce_mode === undefined && elapsed > delay ) {
+                // In throttle mode, if `delay` time has been exceeded, execute
+                // `callback`.
+                exec();
+            } else if ( no_trailing !== true ) {
+                timeout_id = setTimeout( debounce_mode ? clear : exec, debounce_mode === undefined ? delay - elapsed : delay );
+            }
+        };
+            
+        if ( $.guid ) {
+            wrapper.guid = callback.guid = callback.guid || $.guid++;
+        }
+        
+        return wrapper;
+    };
+  
+  
+    $.debounce = function( delay, at_begin, callback ) {
+        return callback === undefined
+            ? jq_throttle( delay, at_begin, false )
+            : jq_throttle( delay, callback, at_begin !== false );
+    };
+
+    $.delay = function ( delay, callback ) {
+        return function () {
+            setTimeout(callback, delay);
+        };
     };
 
 
@@ -3174,8 +3261,7 @@ var smile = {};
             }
         }
 
-        $(window).resize($.debounce(200, this.resize));
-        return this;
+        $(window).resize($.debounce(500, this.resize));
     };
 
     $.extend(smile.Player.prototype, EventDispatcher.prototype, {
@@ -3251,6 +3337,8 @@ var smile = {};
         },
 
         resize: function () {
+            this.dispatchEvent({type: 'resize'});
+            return this;
         },
 
         /**
@@ -3419,7 +3507,10 @@ var smile = {};
                 setPlayButton = function (state) {
                     ctrl.container.find('.smile-button-play')
                         .removeClass('play pause')
-                        .addClass(state)
+                        .addClass(state);
+                    ctrl.container.find('.smile-button-play i')
+                        .removeClass('fa-play fa-pause')
+                        .addClass('fa-'+state);
                 },
                 setVolumeButton = function () {
                     var cls = 'vol3';
@@ -3435,7 +3526,19 @@ var smile = {};
                         .addClass(cls);
                     ctrl.container.find('.smile-volume-progress-bar')
                         .css('width', (player.media.muted?0:(player.media.volume*100))+'%');
+                    ctrl.container.find('.smile-button-volume i')
+                        .removeClass('fa-volume-up fa-volume-down fa-volume-off')
+                        .addClass(cls == 'vol0' ? 'fa-volume-off' : (cls == 'vol3' ? 'fa-volume-up' : 'fa-volume-down'));
                 },
+                setFullscreenButton = $.delay(100, function (event) {
+                    var fs = document.fullScreen||document.mozFullScreen||document.webkitIsFullScreen;
+                    ctrl.container.find('.smile-button-fullscreen')
+                        .removeClass('open close')
+                        .addClass(fs ? 'close' : 'open');
+                    ctrl.container.find('.smile-button-fullscreen i')
+                        .removeClass('fa-expand fa-compress')
+                        .addClass(fs ? 'fa-compress' : 'fa-expand');
+                }),
                 getNearestBuffer = function () {
                     var i;
                     for (i = player.media.buffered.length-1; i >= 0; i -= 1) {
@@ -3499,9 +3602,19 @@ var smile = {};
                 player.media.setMuted(!player.media.muted);
                 event.preventDefault();
             });
-            ctrl.container.on('click', '.smile-button-fullscreen', function (event) {
-                (player.container.webkitRequestFullscreen||player.container.mozRequestFullScreen).call(player.container);
+            ctrl.container.on('click', '.smile-button-fullscreen,.smile-button-fullscreen.open', function (event) {
                 event.preventDefault();
+                if (player.container.webkitRequestFullScreen) player.container.webkitRequestFullScreen();
+                else if (player.container.mozRequestFullScreen) player.container.mozRequestFullScreen();
+                else if (player.container.requestFullscreen) player.container.requestFullscreen();
+                else if (player.container.requestFullScreen) player.container.requestFullScreen();
+            });
+            ctrl.container.on('click', '.smile-button-fullscreen.close', function (event) {
+                event.preventDefault();
+                if (document.cancelFullScreen) document.cancelFullScreen();
+                else if (document.webkitCancelFullScreen) document.webkitCancelFullScreen();
+                else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+                else if (document.exitFullscreen) document.exitFullscreen();
             });
             ctrl.container.on('mouseup', '.smile-time-progress', function (event) {
                 if (!player.media.duration) return;
@@ -3514,8 +3627,19 @@ var smile = {};
                 player.media.setVolume(progress);
             });
 
+            document.addEventListener("fullscreenchange", setFullscreenButton);
+            document.addEventListener("webkitfullscreenchange", setFullscreenButton);
+            document.addEventListener("mozfullscreenchange", setFullscreenButton);
+
             setPlayButton('play');
-            //setVolumeButton();
+            setFullscreenButton();
+
+            ctrl.resize = function () {
+                player.$container.find('.smile-media, .smile-area, video')
+                    .css('max-height', ($(window).height()-40)+'px');
+            };
+            ctrl.resize();
+            this.addEventListener('resize', ctrl.resize);
         }
     });
 }(jQuery, mejs, smile));
@@ -3523,7 +3647,12 @@ var smile = {};
 
     smile.Player.registerExtension('displays', {
         initialize: function () {
-            smile.util.bindAll(this, ['resize']);
+            var that = this;
+            this.addEventListener('resize', function (){
+                $.each(that.displays||[], function (i, display) {
+                    if (display.resize) display.resize();
+                });
+            });
         },
         ready: function () {
             var that = this;
@@ -3550,11 +3679,30 @@ var smile = {};
                     console.warn('Smile display expects track parameter');
                 }
             });
+        }
+    });
+
+    smile.CueDisplay = function (options) {
+        this.display = options.display;
+        this.cue = options.cue;
+        this.toggleDisplay = options.toggleDisplay || false;
+        this.render();
+    };
+    $.extend(smile.CueDisplay.prototype, {
+        render: function () {
+            this.el = $('<div>').addClass('smile-cue')
+                .append(this.cue.text.replace('\n', '<br/>'))
+                .attr('id', this.display.track.id+'-cue-'+this.cue.id)
+                .hide()
+                .appendTo(this.display.$container);
         },
-        resize: function (event) {
-            $.each(this.displays||[], function (i, display) {
-                if (display.resize) display.resize();
-            });
+        activate: function () {
+            this.el.addClass('active');
+            if (this.toggleDisplay) this.el.show();
+        },
+        deactivate: function () {
+            this.el.removeClass('active');
+            if (this.toggleDisplay) this.el.hide();
         }
     });
 
@@ -3562,8 +3710,8 @@ var smile = {};
         Display
         If you want to hide it, use track.setMode('disabled') - mode 'hidden' is used for hiding native renderers
             if you still need the track to fire, just hide container
-        Will toggle .active class on cue views
-        By default will also toggle display css property (except if options.toggleDisplay == false)
+
+        Redefine renderCue(VttCue) -> smile.CueDisplay
         
         Also, all <*> elements in display container with data-time="" value will seek video position on button click
 
@@ -3573,27 +3721,32 @@ var smile = {};
         @param  options.track               smile.Track         track instance
         @param  options.toggleDisplay       Boolean             whether to toggle display when cue is active/inactive (defaul: true; otherwise only active class gets toggled)
         @param  options.visibleOnCue        Boolean             whether to hide display when no cue is active
-        @param  options.onlyShim            Boolean             only show display when shim is active (default: false)
-                                                            (shim is active means that both media element is native and track support is native)
+        @param  options.pauseOnExit         Boolean             pause when any cue exists (deactivates)
+        @param  options.pauseOnEnter        Boolean             pause when any cue enters (activates)
+        @param  options.hideIfNative        Boolean             only show display when shim is active (default: false)
+                                                                (native means that both media element is native and track support is native)
         @param  options.autoLanguage        Boolean             automatically handle language change (default: true)
     */
     smile.Display = function (options) {
         if (!options.container) throw new Error("Display needs container");
         this.$container = $(options.container);
         this.$container[0].smileDisplay = this;
+        if (options.visibleOnCue) this.$container.hide();
         this.player = options.player;
         this.cues = {};
-        this.visibleOnCue = options.visibleOnCue || false;
-        this.toggleDisplay = typeof options.toggleDisplay == 'undefined' ? true : !!options.toggleDisplay;
-        if (this.visibleOnCue) this.$container.hide();
-        this.onlyShim = options.onlyShim || false;
-        this.autoLanguage = typeof options.autoLanguage == 'undefined' ? true : options.autoLanguage;
+
+        options.toggleDisplay = typeof options.toggleDisplay == 'undefined' ? true : !!options.toggleDisplay;
+        options.autoLanguage = typeof options.autoLanguage == 'undefined' ? true : !!options.autoLanguage;
+        this.options = options;
+
+        this.lastActiveIds = [];
         smile.util.bindAll(this, ['render', 'onModeChange', 'onCueChange']);
         if (options.track) this.setTrack(options.track);
     };
     $.extend(smile.Display.prototype, EventDispatcher.prototype, {
         setTrack: function (track) {
-            var show = (!this.onlyShim) || (this.player.media.pluginType != 'native' || window.TextTrack.shim);
+            var show = (!this.options.hideIfNative)
+                || (this.player.media.pluginType != 'native' || window.TextTrack.shim);
             if (this.track) this.unhookTrack();
             this.cues = {};
             this.track = track;
@@ -3625,20 +3778,14 @@ var smile = {};
             smile.Display.hookTimeLinkEvents(this.$container, this.player);
         },
         renderCue: function (cue) {
-            return { 
-                el: $('<div>').addClass('smile-cue')
-                    .append(cue.text.replace('\n', '<br/>'))
-                    .attr('id', this.track.id+'-cue-'+cue.id)
-                    .hide()
-                    .appendTo(this.$container)
-            };
+            return new smile.CueDisplay({display: this, cue: cue, toggleDisplay: this.options.toggleDisplay});
         },
         onModeChange: function () {
-            if (this.track.mode == 'showing' || this.track.mode == 'hidden') {
-                this.$container.show();
-            } else {
-                this.$container.hide();
-            }
+            // if (this.track.mode == 'showing' || this.track.mode == 'hidden') {
+            //     this.$container.show();
+            // } else {
+            //     this.$container.hide();
+            // }
             if (this.autoLanguage && this.track.mode == 'disabled') {
                 var that = this, spl = this.track.id.split('-'),
                     trackId = spl.slice(0, spl.length-1).join('-');
@@ -3651,19 +3798,26 @@ var smile = {};
             }
         },
         onCueChange: function () {
-            var trackId = this.track.id,
-                show = false,
-                toggleDisplay = this.toggleDisplay,
-                activeIds = $.map(this.track.activeCues||[], function (cue) {
-                    return trackId + '-cue-' + cue.id;
-                });
-            if (this.visibleOnCue) this.$container[activeIds.length ? 'show' : 'hide']();
-            // show active cues / hide inactive
-            this.$container.find('.smile-cue').each(function () {
-                show = activeIds.indexOf($(this).attr('id')) > -1;
-                $(this).toggleClass('active', show);
-                if (toggleDisplay) $(this).toggle(show);
-            });
+            // @TODO this could be refactored to effectively shim chrome's (and others') broken onexit/enter on cues
+            var cuePrefix = this.track.id+'-cue-',
+                activeIds = $.map(this.track.activeCues||[], function (cue) { return cue.id; }),
+                cueView, id, i;
+            for (i = 0; i < activeIds.length; i += 1) {
+                id = activeIds[i]; cueView = this.cues[id];
+                if (cueView && this.lastActiveIds.indexOf(id) === -1) {
+                    cueView.activate();
+                    if (this.options.pauseOnEnter) this.player.media.pause(); // @TODO what if seeked?
+                }
+            }
+            for (i = 0; i < this.lastActiveIds.length; i += 1) {
+                id = this.lastActiveIds[i]; cueView = this.cues[id];
+                if (cueView && activeIds.indexOf(id) === -1) {
+                    cueView.deactivate();
+                    if (this.options.pauseOnExit) this.player.media.pause();
+                }
+            }
+            this.lastActiveIds = activeIds;
+            if (this.options.visibleOnCue) this.$container[activeIds.length ? 'show' : 'hide']();
         },
         resize: function () {
         },

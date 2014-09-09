@@ -159,8 +159,7 @@
             }
         }
 
-        $(window).resize($.debounce(200, this.resize));
-        return this;
+        $(window).resize($.debounce(500, this.resize));
     };
 
     $.extend(smile.Player.prototype, EventDispatcher.prototype, {
@@ -236,6 +235,8 @@
         },
 
         resize: function () {
+            this.dispatchEvent({type: 'resize'});
+            return this;
         },
 
         /**

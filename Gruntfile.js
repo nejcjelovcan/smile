@@ -4,6 +4,7 @@ module.exports = function(grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-watch');
 
     var pkg = grunt.file.readJSON(__filename.split('/').slice(0, -1).concat(['package.json']).join('/'));
 
@@ -82,6 +83,15 @@ module.exports = function(grunt) {
                     'dist/addons/controls.min.js': ['dist/addons/controls.js'],
                     'dist/addons/core.min.js': ['dist/addons/core.js'],
                     'dist/addons/displays.min.js': ['dist/addons/displays.js'],
+                }
+            }
+        },
+        watch: {
+            scripts: {
+                files: ['src/**/*.js', 'src/**/*.css'],
+                tasks: ['concat'],
+                options: {
+                    spawn: 'false'
                 }
             }
         }

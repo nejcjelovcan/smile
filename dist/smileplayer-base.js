@@ -251,6 +251,7 @@ EventDispatcher.prototype = {
     }
 
     function setTrackNode (track) {
+        console.log('SET TRACK NODE');
         $('track').each(function () {
             if (this.track && !this.track.node && (!track || this.track === track)) {
                 this.track.node = this;
@@ -427,8 +428,9 @@ EventDispatcher.prototype = {
             return this.mode;
         },
         ready: function (f) {
-            var node = this.node;
+            var node = this.node || (this.id && $('#'+this.id)[0]);  // @TODO
             if (node) {
+                console.log('READY', '#'+this.id, (node.readyState||node._readyState), f);
                 if ((node.readyState||node._readyState) === 2 || (node.readyState||node._readyState) === 3) {
                     setTimeout(f, 0);
                 } else {
@@ -1071,6 +1073,24 @@ var smile = {};
         addCssRule: function (selector, css) {
             if (document.styleSheets[0].addRule) document.styleSheets[0].addRule(selector, css);
             else if (document.styleSheets[0].insertRule) document.styleSheets[0].insertRule(selector+'{'+css+'}', 0);
+        },
+
+        /**
+            Convert string to XML Document
+            @param  {String}    str
+            @type   XMLDocument
+        */
+        stringToDoc: function (str) {
+            var doc, parser;
+            if (window.ActiveXObject){
+                doc = new ActiveXObject('Microsoft.XMLDOM');
+                doc.async='false';
+                doc.loadXML(str);
+            } else {
+                parser = new DOMParser();
+                doc = parser.parseFromString(str, 'text/xml');
+            }
+            return doc;
         }
 
         
@@ -1078,6 +1098,73 @@ var smile = {};
 
     $.fn.dataObject = function (attrName) {
         return smile.util.parseObjectLiteral($(this).data(attrName));
+    };
+
+
+    $.throttle = jq_throttle = function( delay, no_trailing, callback, debounce_mode ) {
+        var timeout_id,
+            last_exec = 0;
+    
+        // `no_trailing` defaults to falsy.
+        if ( typeof no_trailing !== 'boolean' ) {
+            debounce_mode = callback;
+            callback = no_trailing;
+            no_trailing = undefined;
+        }
+    
+        function wrapper() {
+            var that = this,
+                elapsed = +new Date() - last_exec,
+                args = arguments;
+          
+            // Execute `callback` and update the `last_exec` timestamp.
+            function exec() {
+                last_exec = +new Date();
+                callback.apply( that, args );
+            };
+          
+            // If `debounce_mode` is true (at_begin) this is used to clear the flag
+            // to allow future `callback` executions.
+            function clear() {
+                timeout_id = undefined;
+            };
+          
+            if ( debounce_mode && !timeout_id ) {
+                // Since `wrapper` is being called for the first time and
+                // `debounce_mode` is true (at_begin), execute `callback`.
+                exec();
+            }
+          
+            // Clear any existing timeout.
+            timeout_id && clearTimeout( timeout_id );
+          
+            if ( debounce_mode === undefined && elapsed > delay ) {
+                // In throttle mode, if `delay` time has been exceeded, execute
+                // `callback`.
+                exec();
+            } else if ( no_trailing !== true ) {
+                timeout_id = setTimeout( debounce_mode ? clear : exec, debounce_mode === undefined ? delay - elapsed : delay );
+            }
+        };
+            
+        if ( $.guid ) {
+            wrapper.guid = callback.guid = callback.guid || $.guid++;
+        }
+        
+        return wrapper;
+    };
+  
+  
+    $.debounce = function( delay, at_begin, callback ) {
+        return callback === undefined
+            ? jq_throttle( delay, at_begin, false )
+            : jq_throttle( delay, callback, at_begin !== false );
+    };
+
+    $.delay = function ( delay, callback ) {
+        return function () {
+            setTimeout(callback, delay);
+        };
     };
 
 
@@ -1243,8 +1330,7 @@ var smile = {};
             }
         }
 
-        $(window).resize($.debounce(200, this.resize));
-        return this;
+        $(window).resize($.debounce(500, this.resize));
     };
 
     $.extend(smile.Player.prototype, EventDispatcher.prototype, {
@@ -1320,6 +1406,8 @@ var smile = {};
         },
 
         resize: function () {
+            this.dispatchEvent({type: 'resize'});
+            return this;
         },
 
         /**

@@ -14,8 +14,12 @@
 .smile-controls > * {
     color: white;
     text-decoration: none;
-    padding: 12px 6px 12px 6px;
+    padding: 10px 6px 12px 6px;
     display: inline-block;
+}
+.smile-controls a {
+    font-size: 24px;
+    padding: 6px 6px 8px 6px;
 }
 .smile-controls a:hover {
     color: hotpink;
@@ -37,41 +41,9 @@
     overflow: hidden;
 }
 
-.smile-button-play:after {
-    content: 'play';
-}
-
-.smile-button-play.pause:after {
-    content: 'pause';
-}
-
-.smile-button-volume:after{
-    content: 'vol';
-    color: gray;
-}
-
-.smile-button-volume.vol3:after {
-    content: 'vol|||';
-    color: white;
-}
-
-.smile-button-volume.vol2:after {
-    content: 'vol||';
-    color: white;
-}
-
-.smile-button-volume.vol1:after {
-    content: 'vol|';
-    color: white;
-},
-
-.smile-button-volume.vol0:after {
-    content: 'vol0';
-    color: white;
-}
-
-.smile-button-fullscreen:after {
-    content: 'fscr';
+.smile-button-play, .smile-button-volume, .smile-button-fullscreen {
+    width: 24px;
+    text-align: center;
 }
 
 .smile-time-progress,

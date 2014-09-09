@@ -19,6 +19,7 @@
     }
 
     function setTrackNode (track) {
+        console.log('SET TRACK NODE');
         $('track').each(function () {
             if (this.track && !this.track.node && (!track || this.track === track)) {
                 this.track.node = this;
@@ -195,8 +196,9 @@
             return this.mode;
         },
         ready: function (f) {
-            var node = this.node;
+            var node = this.node || (this.id && $('#'+this.id)[0]);  // @TODO
             if (node) {
+                console.log('READY', '#'+this.id, (node.readyState||node._readyState), f);
                 if ((node.readyState||node._readyState) === 2 || (node.readyState||node._readyState) === 3) {
                     setTimeout(f, 0);
                 } else {

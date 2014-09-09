@@ -2878,6 +2878,7 @@ var smile = {};
             var obj = {};
             $.each(parseObjectLiteral(str), function (i, item) {
                 if (item.unknown) obj[item.unknown] = true;
+                else if ((item.value||'').substr(0,1) == '{') obj[item.key] = smile.util.parseObjectLiteral(item.value);
                 else obj[item.key] = item.value;
             });
             return obj;
@@ -3121,7 +3122,7 @@ var smile = {};
             tracks must have ids!
         2. first list rtmp sources, <video> will ignore them but flash will use them instead of http
         3. use .smile-player hideNativeTracks to hide native caption/subtitles rendering
-            or use .smile-display onlyShim to only show display when native caption/subtitles aren't rendering
+            or use .smile-display hideIfNative to only show display when native caption/subtitles aren't rendering
 
         @TODO firefox 31 THERE IS NO "load" EVENT ON <track> @FML
 
@@ -3193,19 +3194,24 @@ var smile = {};
         @param  [options.hideNativeTracks]  Boolean         hide native tracks (subtitles and captions)
 
         Events
-        @event  load        mediaelement successfully loaded
-        @event  error       mediaelement error when loading
-        @event  loadtracks  tracks are loaded (either with error or not)
+        @event  load            mediaelement successfully loaded
+        @event  error           mediaelement error when loading
+        @event  loadtracks      tracks are loaded (either with error or not)
+        @event  resize          player (window) resized
+        @event  statechange     state changed (see state property)
 
-        @property   media   mediaelement API
-        @property   $media  jquery wrapped dom node
-        @property   container
+        @property   media       mediaelement API
+        @property   $media      jquery wrapped video node
+        @property   container   container node
+        @property   $container  jquery wrapped container node
+        @property   state       video state     'initializing'|'ready'|'playing'|'waiting'|'pause'|'ended'
     */
     smile.Player = function (node, options) {
         if (! (this instanceof smile.Player)) return new smile.Player(node, options);
         smile.util.bindAll(this, ['initializeDisplays', 'onMediaReady', 'onHandleError', 'resize']);
         options || (options = {});
         this.smileReadyState = 1;
+        this.state = 'initializing';
 
         // node is media element
         var $media = $(node),
@@ -3241,9 +3247,21 @@ var smile = {};
             this.$container.dataObject('smile'),
             options);
 
+        function setState (state) {
+            return function () {
+                that.state = state;
+                that.dispatchEvent({type: 'statechange', state: state});
+            };
+        }
+
         // when ready
         this.ready(function () {
+            setState('ready')();
             that.media.addEventListener('loadedmetadata', $.proxy(that.updateRatio, that));
+            that.media.addEventListener('playing', setState('playing'));
+            that.media.addEventListener('waiting', setState('waiting'));
+            that.media.addEventListener('pause', setState('pause'));
+            that.media.addEventListener('ended', setState('ended'));
             that.updateRatio();
         });
 

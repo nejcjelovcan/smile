@@ -88,6 +88,7 @@ var smile = {};
             var obj = {};
             $.each(parseObjectLiteral(str), function (i, item) {
                 if (item.unknown) obj[item.unknown] = true;
+                else if ((item.value||'').substr(0,1) == '{') obj[item.key] = smile.util.parseObjectLiteral(item.value);
                 else obj[item.key] = item.value;
             });
             return obj;

@@ -4,7 +4,7 @@
         Text track shim
 
         http://html5index.org/Media%20-%20Overview.html
-        
+
         @TODO .on[eventtype] properties can be implemented fairly easily
             (add one listener for each event type that calls the property if exists)
 
@@ -19,7 +19,6 @@
     }
 
     function setTrackNode (track) {
-        console.log('SET TRACK NODE');
         $('track').each(function () {
             if (this.track && !this.track.node && (!track || this.track === track)) {
                 this.track.node = this;
@@ -61,7 +60,7 @@
 
             This must be called on mediaElement (plugin OR standard with no texttrack api OR standard with texttrack api only polyfilled)
             ASAP (when dom in mediaElement is ready) in order for shimmed tracks to work correctly
-            
+
             It will
             1. initialize textTracks property
             2. hook addtrack event to hook modechange event to activate/deactivate listening to timeupdate events on mediaElement
@@ -79,6 +78,7 @@
                 if (!e.track.node) setTrackNode(e.track);
                 // if text tracks are shimmed, set up _activate and _deactivate (which take care of _update calls)
                 if (shimmed) {
+                    e.track._initTextTrack();
                     if (e.track.mode != 'disabled') {
                         e.track._activate(that);
                     }
@@ -86,7 +86,6 @@
                         if (e.track.mode == 'disabled') e.track._deactivate(that);
                         else e.track._activate(that);
                     });
-                    e.track._initTextTrack();
                 } else {
                     e.track._initTextTrack();
                 }
@@ -107,7 +106,7 @@
             var that = this, textTrack;
             $(elem).find('track').each(function () {
                 var el = $(this)[0];
-                textTrack = that.addTextTrack($(el).attr('kind'), $(el).attr('label'), $(el).attr('srclang'), 
+                textTrack = that.addTextTrack($(el).attr('kind'), $(el).attr('label'), $(el).attr('srclang'),
                     {id: $(el).attr('id'), node: el, src: $(el).attr('src')});
             });
         }
@@ -171,7 +170,7 @@
             // poll for readyState changes in FF 31/32
             if (isFirefox(31) || isFirefox(32)) {
                 var interval = setInterval(function () {
-                    var state = (node.readyState||node._readyState);
+                    var state = (node._readyState||node.readyState);
                     window.thaaat = that;
                     if (state > 1) {
                         if (state === 2) node.dispatchEvent(new mejs.TrackEvent('load', {track: that}));
@@ -198,12 +197,11 @@
         ready: function (f) {
             var node = this.node || (this.id && $('#'+this.id)[0]);  // @TODO
             if (node) {
-                console.log('READY', '#'+this.id, (node.readyState||node._readyState), f);
-                if ((node.readyState||node._readyState) === 2 || (node.readyState||node._readyState) === 3) {
+                if ((node._readyState||node.readyState) === 2 || (node._readyState||node.readyState) === 3) {
                     setTimeout(f, 0);
                 } else {
                     var cb = function () {
-                        if (node.readyState > 1) {
+                        if ((node._readyState||node.readyState) > 1) {
                             node.removeEventListener('load', cb);
                             node.removeEventListener('readystatechange', cb);
                             setTimeout(f, 0);
@@ -384,15 +382,15 @@
         this.src = options.src;
         this.cues = new mejs.TextTrackCueList;
         this.activeCues = new mejs.TextTrackCueList;
-        
+
         this._mode = options.mode || 'hidden';   // disabled, hidden, showing
         if (!this.node) console.warn('Use addTextTrack on player instead of instantiating TextTrack manually');
-        
+
         // @TODO        if we have the node we can listen to it being removed and also remove track from the tracklist
 
         // we set up setters and getters here (also gets called when polyfilling texttracks)
         if (Object.defineProperty) Object.defineProperty(this, 'mode', {set: this.setMode, get: this.getMode});
-        
+
         // load cues
         this._loadCues();
     };
@@ -459,7 +457,7 @@
                     }
                 });
             }
-        }       
+        }
     });
     mejs.TextTrack.shim = true;
 
@@ -470,7 +468,7 @@
         This is really minimal, no events
     */
     mejs.TextTrackCueList = function () {
-        
+
     };
     mejs.TextTrackCueList.prototype = new Array;
     $.extend(mejs.TextTrackCueList.prototype, EventDispatcher.prototype, {

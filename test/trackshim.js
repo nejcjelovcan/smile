@@ -4,6 +4,10 @@ var mediaElement, newMediaElement = function () {
     $.extend(a, mejs.MediaElementTracksTrait);
     return a;
 };
+var newNode = function () {
+    var n = new EventDispatcher;
+    return n;
+}
 
 module('mejs.MediaElementTracksTrait');
 // for testing assume all is shimmed
@@ -30,7 +34,7 @@ test('._initTextTracks', function () {
     mediaElement.textTracks[0].setMode('showing');
 });
 
-test('._parseTextTracks', function () {    
+test('._parseTextTracks', function () {
     expect(5);
     mediaElement = newMediaElement();
     mediaElement.addTextTrack = function (kind, label, lang) {
@@ -45,9 +49,9 @@ test('._parseTextTracks', function () {
     }
 
     var el = $('<video>')
-        .append($('<track kind="captions" srclang="sl" label="Slovenian captions" />'))
-        .append($('<track kind="subtitles" srclang="en" label="English subtitles" />'));
-    mediaElement._initTextTracks(el[0]);
+        .append($('<track kind="captions" srclang="sl" id="video-track-1" label="Slovenian captions" />'))
+        .append($('<track kind="subtitles" srclang="en" id="video-track-2" label="English subtitles" />'));
+    mediaElement._initTextTracks(el[0], true);
 
     equal(mediaElement.textTracks.length, 2);
 });
@@ -170,7 +174,7 @@ test('.ready', function () {
     track.ready(function () {
         ok(true);
         track.ready(function () {
-            ok(true); 
+            ok(true);
             start();
         });
     });
@@ -191,7 +195,7 @@ test('.removeCue', function () {
     track.addCue(cue);
     track.addCue(cue2);
     equal(track.cues.length, 2);
-    
+
     track.removeCue(cue);
     equal(track.cues.length, 1);
     equal(track.cues[0], cue2);
@@ -213,20 +217,20 @@ test('._update', function () {
             src: 'metadata.vtt',
             node: node
         });
-    track.addEventListener('cuechange', function (a,b,c) {
+    /*track.addEventListener('cuechange', function (a,b,c) {
         console.log('CUE CHANGE',track.activeCues.map(function (c) { return c.id; }));
-    });
+    });*/
     track.node.addEventListener('load', function () {
         start();
         ok(true);
-        
+
         var evt = document.createEvent('CustomEvent');
         evt.initEvent('timeupdate', false, false);
         evt.mediaElement = mediaElement
 
         mediaElement.currentTime = 4.0;
         mediaElement.dispatchEvent(evt);
-        
+
         mediaElement.currentTime = 11.0;
         mediaElement.dispatchEvent(evt);
 
@@ -260,4 +264,3 @@ test('.constructor', function () {
         /Failed to construct/
     );
 });
-

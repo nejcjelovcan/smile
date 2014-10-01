@@ -11,6 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "mediaelement": "2.14.2",
-    "jquery": "2.1.1"
+    "jquery": "2.1.1",
+    "qunit": "1.15.0",
+    "blanket": "1.1.5"
   }
 }

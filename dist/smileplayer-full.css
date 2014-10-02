@@ -23,6 +23,11 @@
     height: auto !important;
 }
 
+.smile-player div.me-plugin embed {
+    width: 100%;
+    height: 100%;
+}
+
 .smile-subtitles {
     position: absolute;
     font-size: 18px;
@@ -101,7 +106,7 @@
 }
 
 .smile-button-play, .smile-button-volume, .smile-button-fullscreen {
-    width: 24px;
+    width: 1.5em;
     text-align: center;
 }
 
@@ -136,6 +141,7 @@
         display: none;
     }
 }
+
 .smile-area-wrapper {
     width: 100%;
     position: relative;

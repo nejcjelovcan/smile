@@ -4,7 +4,7 @@
         Base Player (wraps mediaelement)
 
         Usage:
-        
+
         Sources:
         extension   mimetype                source
         mp4         video/mp4               http://
@@ -24,7 +24,7 @@
         @TODO firefox 31 THERE IS NO "load" EVENT ON <track> @FML
 
         Attributes:
-        
+
         video
             poster              poster image
             controls            show controls ?
@@ -87,7 +87,7 @@
         @param  [options.regions]           Object          region id -> region class mapping
 
         Extensions:
-        @param  [options.display]           Boolean         auto set up displays (default: true) 
+        @param  [options.display]           Boolean         auto set up displays (default: true)
         @param  [options.hideNativeTracks]  Boolean         hide native tracks (subtitles and captions)
 
         Events
@@ -122,7 +122,7 @@
             $media = $($media.find('video,audio')[0]);
             if ($media.length && ['video', 'audio'].indexOf($media[0].tagName.toLowerCase()) > -1) {
                 this.$media = $media;
-                options.container = $(node);                
+                options.container = $(node);
             }
         }
         if (!this.$media) throw new Error("Needs <video> or <audio> or an element containing one of those");
@@ -138,8 +138,8 @@
         this.initializeContainer(options.container);
 
         // options
-        this.options = $.extend({}, 
-            this.constructor.defaults, 
+        this.options = $.extend({},
+            this.constructor.defaults,
             this.$media.dataObject('smile'),
             this.$container.dataObject('smile'),
             options);
@@ -206,7 +206,7 @@
             // set media
             this.media = media;
             this.media.smile = this;
-          
+
             // dispatch load
             this.dispatchEvent({type: 'load', target: this});
             this._loadtracksFired = false;
@@ -225,7 +225,7 @@
             this.smileReadyState = 3;
             this.dispatchEvent({type: 'error', error: e, target: this});
         },
-        
+
         /**
             Call function when player is ready
         */
@@ -252,6 +252,7 @@
         },
 
         resize: function () {
+            this.updateSize();
             this.dispatchEvent({type: 'resize'});
             return this;
         },
@@ -285,12 +286,23 @@
                 this.$media.attr({width: '', height: ''});
             } else if (data.ratio) ratio = smile.util.parseRatio(data.ratio);
             else ratio = this.$media.width()/this.$media.height();
+            if (Math.abs(ratio) === Infinity) ratio = 0;
             return ratio || (16/9);
         },
 
         updateRatio: function (ratio) {
             if (typeof ratio != 'number' || !ratio) ratio = this.getVideoRatio();
             smile.util.addCssRule('#'+this.$container.attr('id')+' .smile-media:after', 'padding-top: '+(100/ratio)+'%;');
+            this.updateSize();
+        },
+
+        updateSize: function () {
+            var embed = this.$container.find('embed');
+            if (embed.length) {
+                var w = this.$container.width(),
+                    h = w*(1/this.getVideoRatio());
+                this.media.setVideoSize(w, h);
+            }
         },
 
         /**

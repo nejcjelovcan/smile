@@ -22,7 +22,7 @@
                 (features.isAndroid ? 'smile-android ' : '') +
                 (features.isiOS ? 'smile-ios ' : '') +
                 (features.isiPad ? 'smile-ipad ' : '') +
-                (features.isiPhone ? 'smile-iphone ' : '') + 
+                (features.isiPhone ? 'smile-iphone ' : '') +
                 (window.TextTrack.shim ? 'smile-trackshim ' : '')
             );
         },

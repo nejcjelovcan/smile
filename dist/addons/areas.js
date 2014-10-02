@@ -135,7 +135,7 @@
                 if (areas.sizes.area1.fixedWidthRatio||areas.sizes.area2.fixedWidthRatio) {
                     area1ratio = areas.sizes.area1.widthRatio*ratio;
                     area2ratio = areas.sizes.area2.widthRatio*ratio;
-                
+
                 // determining ratio from size
                 } else if (area2size.width) {
                     area1ratio = areas.sizes.area1.ratio;
@@ -149,7 +149,7 @@
             } else {
                 area1ratio = areas.sizes.area1.ratio;
                 area2ratio = areas.sizes.area2.ratio;
-                
+
                 // one area has fixed width ratio
                 if (areas.sizes.area1.fixedWidthRatio) {
                     ratio = area2ratio/(1-areas.sizes.area1.widthRatio);
@@ -183,7 +183,7 @@
         setAreaRatios: function (area1ratio, area2ratio) {
             var areas = this._areas;
             $.extend(areas.sizes, {
-                ratio: area1ratio + area2ratio 
+                ratio: area1ratio + area2ratio
             });
             $.extend(areas.sizes.area1, {
                 ratio: area1ratio,

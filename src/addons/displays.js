@@ -67,7 +67,7 @@
             if you still need the track to fire, just hide container
 
         Redefine renderCue(VttCue) -> smile.CueDisplay
-        
+
         Also, all <*> elements in display container with data-time="" value will seek video position on button click
 
         @param  options                     Object
@@ -180,7 +180,7 @@
             return 4/3;
         }
     });
-    
+
     smile.Display.hookTimeLinkEvents = function (container, player) {
         container.find('*[data-time]').each(function () {
             var $el = $(this), time = parseFloat($el.attr('data-time'))+0.1;
@@ -198,7 +198,7 @@
         {
             images: [{src: width: height: }]
             title:
-            text: 
+            text:
         }
 
         @TODO dynamic render (only add certain amount of near images to DOM)

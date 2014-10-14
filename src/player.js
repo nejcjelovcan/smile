@@ -359,6 +359,7 @@
         }
     });
     $.fn.smile = function (options) {
+        // @TODO use .data() instead (/in addition to) of property on DOM
         $(this).each(function () {
             this.smile ||
                 (this.smile = new smile.Player($(this), options));

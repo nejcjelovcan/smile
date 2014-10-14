@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Smileplayer 2.0</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/fontawesome/4.0.3/css/font-awesome.min.css" type="text/css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="../dist/smileplayer.css">
+
+    <link rel="stylesheet" href="bower_components/foundation/css/foundation.css" type="text/css" media="screen" />
+
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../dist/smileplayer-postmessage.js"></script>
+
+    <script>
+        var player;
+        $(document).ready(function () {
+            player = new smile.PostmessagePlayer($('iframe'), {});
+            //$('.smile-player').smile();
+            //player = $('.smile-player')[0].smile;
+        });
+    </script>
+
+</head>
+
+<body>
+    <br/>
+    <div class="row">
+        <div class="small-12 medium-10 big-8 small-centered columns">
+            <iframe src="http://192.168.1.122/js/smile/test/child.html">
+            </iframe>
+        </div>
+    </div>
+</body>
+</html>

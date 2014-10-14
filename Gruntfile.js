@@ -27,7 +27,8 @@ module.exports = function(grunt) {
                     'dist/smileplayer-base.js',
                     'src/addons/core.js',
                     'src/addons/controls.js',
-                    'src/addons/displays.js'
+                    'src/addons/displays.js',
+                    'src/embed/child.js'
                 ],
                 dest: 'dist/smileplayer.js'
             },
@@ -53,6 +54,14 @@ module.exports = function(grunt) {
                     dest: 'dist/addons'
                 }]
             },
+            postmessage: {
+                src: [
+                    'src/EventDispatcher.js',
+                    'src/util.js',
+                    'src/embed/parent.js'
+                ],
+                dest: 'dist/smileplayer-postmessage.js'
+            },
             css: {
                 src: [
                     'src/player.css',
@@ -74,7 +83,8 @@ module.exports = function(grunt) {
                     'dist/smileplayer-base.min.js': ['dist/smileplayer-base.js'],
                     'dist/smileplayer.min.js': ['dist/smileplayer.js'],
                     'dist/smileplayer-me.min.js': ['dist/smileplayer-me.js'],
-                    'dist/smileplayer-full.min.js': ['dist/smileplayer-full.js']
+                    'dist/smileplayer-full.min.js': ['dist/smileplayer-full.js'],
+                    'dist/smileplayer-postmessage.min.js': ['dist/smileplayer-postmessage.js'],
                 }
             },
             addons: {
@@ -89,15 +99,15 @@ module.exports = function(grunt) {
         watch: {
             scripts: {
                 files: ['src/**/*.js', 'src/**/*.css'],
-                tasks: ['concat'],
+                tasks: ['concat', 'uglify'],
                 options: {
-                    spawn: 'false'
+                    spawn: false
                 }
             }
         }
     });
 
-    grunt.registerTask('build', ['concat:base', 'concat:player', 'concat:css', 'concat:addons', 'concat:mediaelement', 'concat:mediaelement-full', 'concat:css-full',
+    grunt.registerTask('build', ['concat:base', 'concat:player', 'concat:css', 'concat:addons', 'concat:mediaelement', 'concat:mediaelement-full', 'concat:css-full', 'concat:postmessage',
         'uglify:player', 'uglify:addons']);
     grunt.registerTask('default', ['build']);
 

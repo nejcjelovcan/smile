@@ -76,7 +76,6 @@
                             callback = args[0];
                             args = args.slice(1);
                         }
-                        console.log('LADIDA', getter, callback);
                         promise = that._postMessage({method: (prefix||'')+k, args: args}, getter);
                         if (getter && promise && callback) promise.done(callback);
                         return promise;

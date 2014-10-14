@@ -3944,7 +3944,6 @@ var smile = {};
                 source: null,   // @TODO determining target origin can fail!!! - must show warning on console that postmessage API is down!
                 targetOrigin: this._determineTargetOrigin(typeof this.options.postMessage === 'boolean' ? '*' : this.options.postMessage)
             };
-            console.log('INITIALIZE postmessage', this.postMessage);
 
             // no need to filter events, we assume only one video in the child (i.e. iframe content document has only one video in DOM)
             $(window).on('message', this.onWindowMessage);
@@ -3964,8 +3963,6 @@ var smile = {};
                 args: [ ... ] }
         */
         onWindowMessage: function (event) {
-            console.log('ON WINDOW MESSAGE (CHILD)', event);
-
             var data;
             try { data = JSON.parse(event.originalEvent.data); }
             catch (e) { return; }

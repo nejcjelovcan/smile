@@ -1,0 +1,21 @@
+.smile-embed {
+    width: 100%;
+    position: relative;
+    z-index: 1;
+    display: block;
+}
+
+.smile-embed:after {
+    padding-top: 32%;
+    display: block;
+    content: '';
+}
+
+.smile-embed iframe {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    border: 0px solid white;
+}

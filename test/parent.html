@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="//cdn.jsdelivr.net/fontawesome/4.0.3/css/font-awesome.min.css" type="text/css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="../dist/smileplayer.css">
+    <link rel="stylesheet" type="text/css" href="../dist/smileplayer-postmessage.css">
 
     <link rel="stylesheet" href="bower_components/foundation/css/foundation.css" type="text/css" media="screen" />
 
@@ -29,8 +29,11 @@
     <br/>
     <div class="row">
         <div class="small-12 medium-10 big-8 small-centered columns">
-            <iframe src="http://192.168.1.122/js/smile/test/child.html">
-            </iframe>
+            <div class="smile-embed">
+                <iframe src="http://192.168.1.122/js/smile/test/child.html" id="smile1">
+                </iframe>
+            </div>
+            after
         </div>
     </div>
 </body>

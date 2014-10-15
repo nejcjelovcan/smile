@@ -75,6 +75,12 @@ module.exports = function(grunt) {
                     'dist/addons/areas.css'
                 ],
                 dest: 'dist/smileplayer-full.css'
+            },
+            'css-postmessage': {
+                src: [
+                    'src/embed/parent.css'
+                ],
+                dest: 'dist/smileplayer-postmessage.css'
             }
         },
         uglify: {
@@ -108,7 +114,7 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('build', ['concat:base', 'concat:player', 'concat:css', 'concat:addons', 'concat:mediaelement', 'concat:mediaelement-full', 'concat:css-full', 'concat:postmessage',
-        'uglify:player', 'uglify:addons']);
+        'concat:css-postmessage', 'uglify:player', 'uglify:addons']);
     grunt.registerTask('default', ['build']);
 
 };

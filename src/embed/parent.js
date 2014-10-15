@@ -16,6 +16,7 @@
 
         if (!this.node) throw new Error("Needs <iframe> or an element containing one");
         this.$node = $(this.node);
+        this.$node.attr({mozallowfullscreen: 1, webkitallowfullscreen: 1, scrolling: 'no'});
         this.uuid = 0;
         this._promises = {};
 
@@ -25,16 +26,22 @@
 
     $.extend(smile.PostmessagePlayer.prototype, EventDispatcher.prototype, {
         initialize: function () {
-            smile.util.bindAll(this, ['onWindowMessage']);
+            smile.util.bindAll(this, ['onWindowMessage', 'onUpdateRatio']);
 
             this.targetOrigin = this.$node.attr('src').split('/').slice(0,3).join('/');
-            this.id = 'smileEmbed' + (''+Math.random()).slice(2,8);
+            this.id = this.$node.attr('id')||('smileEmbed' + (''+Math.random()).slice(2,8));
+            this.$container = this.$node.parent();
+            if (!this.$container.hasClass('smile-embed')) {
+                this.$container = $('<div>').addClass('smile-embed').append(this.$node).appendTo(this.$container);
+            }
+            this.$container.attr('id', this.id+'-container');
             $(window).on('message', this.onWindowMessage);
+            this.addEventListener('updateratio', this.onUpdateRatio);
 
             var that = this;
-            setTimeout(function () {
+            this.$node.load(function() {
                 that._postMessage({method: 'registerParent'});
-            }, 1000);   // @TODO
+            });
         },
         onWindowMessage: function (event) {
             var data, dispatch;
@@ -57,6 +64,12 @@
                 }
             }
         },
+        onUpdateRatio: function (e) {
+            // @TODO we get ratio of video only (controls aren't counted!)
+            var w = this.$node.width(),
+                ratio = w/((w/e.ratio) + 40); /* controls height */
+            smile.util.addCssRule('#'+this.$container.attr('id')+':after', 'padding-top: '+(100/ratio)+'%;');
+        },
         registerChild: function (args, source) {
             var smileReadyState = args[0],
                 methods = args[1];
@@ -68,7 +81,7 @@
             $.each(methods, function (k, v) {
                 if (v === true) {
                     obj[k] = function () {
-                        var getter = k.substr(0,3) === 'get',
+                        var getter = k.substr(0,3) === 'get' || k.substr(0,3) === 'can',
                             args = $.makeArray(arguments),
                             promise,
                             callback;
@@ -89,11 +102,12 @@
 
         _postMessage: function (data, callsBack) {
             // @TODO remember postmessage history while .postmessageSource is null
-            var promise;
+            var promise, that = this;
             if (callsBack) {
                 this.uuid += 1
                 data.uuid = this.uuid;
                 promise = this._promises[data.uuid] = $.Deferred();
+                promise.done(function () { delete that._promises[data.uuid]; })
             }
             this.node.contentWindow.postMessage(JSON.stringify(data), this.targetOrigin);
             return promise;

@@ -1274,6 +1274,7 @@ var smile = {};
         @event  loadtracks      tracks are loaded (either with error or not)
         @event  resize          player (window) resized
         @event  statechange     state changed (see state property)
+        @event  updateratio     ratio was updated
 
         @property   media       mediaelement API
         @property   $media      jquery wrapped video node
@@ -1354,7 +1355,7 @@ var smile = {};
             }
         }
 
-        $(window).resize($.debounce(500, this.resize));
+        $(window).resize($.debounce(250, this.resize));
     };
 
     $.extend(smile.Player.prototype, EventDispatcher.prototype, {
@@ -1472,6 +1473,7 @@ var smile = {};
             if (typeof ratio != 'number' || !ratio) ratio = this.getVideoRatio();
             smile.util.addCssRule('#'+this.$container.attr('id')+' .smile-media:after', 'padding-top: '+(100/ratio)+'%;');
             this.updateSize();
+            this.dispatchEvent({type: 'updateratio', ratio: ratio});
         },
 
         updateSize: function () {

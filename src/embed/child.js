@@ -10,6 +10,12 @@
 
 */
 
+    var earlyOnWindowMessages = [],
+        earlyOnWindowMessage = function (e) {
+            earlyOnWindowMessages.push(e);
+        };
+    $(window).on('message', earlyOnWindowMessage);
+
     smile.Player.registerExtension('postMessage', {
         initialize: function () {
             smile.util.bindAll(this, ['onWindowMessage', '_cleanObject']);
@@ -24,6 +30,7 @@
             $(window).on('message', this.onWindowMessage);
 
             this._proxyMediaEvents();
+            $.map(earlyOnWindowMessages, this.onWindowMessage);
         },
 
         /**

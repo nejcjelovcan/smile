@@ -34,11 +34,22 @@
                         that.$container.removeClass(playbackStates).addClass(state);
                     }
                 };
+
+            function updateFullscreen() {
+                setTimeout(function ()  {
+                    var fs = document.fullScreen||document.mozFullScreen||document.webkitIsFullScreen;
+                    that.$container.toggleClass('smile-fullscreen', fs);
+                }, 100);
+            }
+
             this.$container.addClass('smile-plugin-'+this.media.pluginType);
             this.media.addEventListener('playing', toggleStateClass('smile-playing'));
             this.media.addEventListener('pause', toggleStateClass('smile-paused'));
             this.media.addEventListener('ended', toggleStateClass('smile-ended'));
             this.media.addEventListener('waiting', toggleStateClass('smile-waiting'));
+            document.addEventListener("fullscreenchange", updateFullscreen);
+            document.addEventListener("webkitfullscreenchange", updateFullscreen);
+            document.addEventListener("mozfullscreenchange", updateFullscreen);
         }
     });
 }(jQuery, mejs, smile));

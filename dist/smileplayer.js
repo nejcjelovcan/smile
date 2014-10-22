@@ -1600,11 +1600,22 @@ var smile = {};
                         that.$container.removeClass(playbackStates).addClass(state);
                     }
                 };
+
+            function updateFullscreen() {
+                setTimeout(function ()  {
+                    var fs = document.fullScreen||document.mozFullScreen||document.webkitIsFullScreen;
+                    that.$container.toggleClass('smile-fullscreen', fs);
+                }, 100);
+            }
+
             this.$container.addClass('smile-plugin-'+this.media.pluginType);
             this.media.addEventListener('playing', toggleStateClass('smile-playing'));
             this.media.addEventListener('pause', toggleStateClass('smile-paused'));
             this.media.addEventListener('ended', toggleStateClass('smile-ended'));
             this.media.addEventListener('waiting', toggleStateClass('smile-waiting'));
+            document.addEventListener("fullscreenchange", updateFullscreen);
+            document.addEventListener("webkitfullscreenchange", updateFullscreen);
+            document.addEventListener("mozfullscreenchange", updateFullscreen);
         }
     });
 }(jQuery, mejs, smile));
@@ -1843,6 +1854,7 @@ var smile = {};
         @param  options.hideIfNative        Boolean             only show display when shim is active (default: false)
                                                                 (native means that both media element is native and track support is native)
         @param  options.autoLanguage        Boolean             automatically handle language change (default: true)
+        @param  options.cueDisplay          smile.CueDisplay    cue display constructor (default: smile.CueDisplay)
     */
     smile.Display = function (options) {
         if (!options.container) throw new Error("Display needs container");
@@ -1898,7 +1910,7 @@ var smile = {};
             smile.Display.hookTimeLinkEvents(this.$container, this.player);
         },
         renderCue: function (cue) {
-            return new smile.CueDisplay({display: this, cue: cue, toggleDisplay: this.options.toggleDisplay});
+            return new (this.options.cueDisplay || smile.CueDisplay)({display: this, cue: cue, toggleDisplay: this.options.toggleDisplay});
         },
         onModeChange: function () {
             // if (this.track.mode == 'showing' || this.track.mode == 'hidden') {
@@ -1925,7 +1937,6 @@ var smile = {};
 
             for (i = 0; i < activeIds.length; i += 1) {
                 id = activeIds[i]; cueView = this.cues[id];
-                console.log('ID', id, cueView);
                 if (cueView && !cueView._activated) {
                     cueView.activate();
                     if (this.options.pauseOnEnter) this.player.media.pause(); // @TODO what if seeked?
@@ -1959,6 +1970,50 @@ var smile = {};
     };
 
     /**
+        CueDisplaySlide
+    */
+    smile.CueDisplaySlide = function (options) {
+        try {
+            this.data = JSON.parse(options.cue.text);
+        } catch (e) {
+            this.data = {};
+        }
+        this.data.images || (this.data.images = []);
+        this.data.images.sort(function (a,b) {
+            if (a.width < b.width) return -1;
+            else if (a.width > b.width) return 1;
+            return 0;
+        });
+        this._width = options.width||0;
+        smile.CueDisplay.call(this, options);
+    };
+    $.extend(smile.CueDisplaySlide.prototype, smile.CueDisplay.prototype, {
+        setWidth: function (width) {
+            if (width > this._width) {
+                this._width = width;
+                this.render();
+            }
+        },
+        render: function () {
+            if (!this.el) {
+                smile.CueDisplay.prototype.render.call(this);
+            }
+            var image = this.getImage(this._width);
+            this.el.empty().append($('<img>').attr({src: image.src, title: this.data.title}));
+        },
+        getImage: function (width) {
+            var i;
+            width || (width = 0);
+            for (i = 0; i < this.data.images.length; i += 1) {
+                if (this.data.images[i].width >= width) {
+                    return this.data.images[i];
+                }
+            }
+            return this.data.images[i];
+        }
+    });
+
+    /**
         DisplaySlides
 
         expects cue format:
@@ -1971,15 +2026,15 @@ var smile = {};
         @TODO dynamic render (only add certain amount of near images to DOM)
     */
     smile.DisplaySlides = function (options) {
+        options.cueDisplay = smile.CueDisplaySlide;
         smile.Display.apply(this, [options]);
         this._ratio = 4/3;
+        this._width = 0;
+        this.resize();
     };
     $.extend(smile.DisplaySlides.prototype, smile.Display.prototype, {
         renderCue: function (cue) {
-            var cueData = JSON.parse(cue.text),
-                cueView = smile.Display.prototype.renderCue.apply(this, [cue]);
-            cueView.el.empty().append($('<img>').attr({src: cueData.images[0].src, title: cueData.title}));
-            return cueView;
+            return new (this.options.cueDisplay || smile.CueDisplay)({display: this, cue: cue, toggleDisplay: this.options.toggleDisplay, width: this._width});
         },
         render: function () {
             smile.Display.prototype.render.apply(this);
@@ -2001,11 +2056,19 @@ var smile = {};
         },
         getRatio: function () {
             return this._ratio;
+        },
+        resize: function () {
+            var width = (this._areas&&this._areas.area2.width())||this.$container.width();
+            if (width > this._width) {
+                this._width = width;
+                $.each(this.cues, function (i, cv) {
+                    cv.setWidth(width);
+                });
+            }
         }
     });
 
 }(jQuery, smile));
-
 (function ($, smile) {
 
 

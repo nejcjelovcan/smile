@@ -3,6 +3,10 @@
     position: relative;
 }
 
+.smile-player.smile-fullscreen {
+    width: 100%;
+}
+
 .smile-media {
     width: 100%;
     position: relative;

@@ -73,7 +73,6 @@
             if (!this.textTracks) {
                 this.textTracks = new mejs.TextTrackList();
             }
-
             this.textTracks.addEventListener('addtrack', function (e) {
                 if (!e.track.node) setTrackNode(e.track);
                 // if text tracks are shimmed, set up _activate and _deactivate (which take care of _update calls)
@@ -90,6 +89,7 @@
                     e.track._initTextTrack();
                 }
             });
+            $.each(this.textTracks, function (i, t) { t._initTextTrack(); });
 
             if (parseTracks) {
                 this._parseTextTracks(elem);
@@ -171,7 +171,6 @@
             if (isFirefox(31) || isFirefox(32)) {
                 var interval = setInterval(function () {
                     var state = (node._readyState||node.readyState);
-                    window.thaaat = that;
                     if (state > 1) {
                         if (state === 2) node.dispatchEvent(new mejs.TrackEvent('load', {track: that}));
                         clearInterval(interval);
@@ -180,6 +179,11 @@
             }
 
             this._bound_update = function (e) { that._update(e); };
+
+            // metadata should be showing by default
+            if (this.kind == 'metadata' && this.getMode() == 'disabled') {
+                this.setMode('showing');
+            }
         },
         setMode: function (mode) {
             if (this instanceof mejs.TextTrack && this.mode != mode) {

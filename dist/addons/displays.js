@@ -41,6 +41,7 @@
         this.display = options.display;
         this.cue = options.cue;
         this.toggleDisplay = options.toggleDisplay || false;
+        this._activated = false;
         this.render();
     };
     $.extend(smile.CueDisplay.prototype, {
@@ -48,14 +49,16 @@
             this.el = $('<div>').addClass('smile-cue')
                 .append(this.cue.text.replace('\n', '<br/>'))
                 .attr('id', this.display.track.id+'-cue-'+this.cue.id)
-                .hide()
                 .appendTo(this.display.$container);
+            if (!this._activated) this.el.hide();
         },
         activate: function () {
+            this._activated = true;
             this.el.addClass('active');
             if (this.toggleDisplay) this.el.show();
         },
         deactivate: function () {
+            this._activated = false;
             this.el.removeClass('active');
             if (this.toggleDisplay) this.el.hide();
         }
@@ -100,15 +103,18 @@
     };
     $.extend(smile.Display.prototype, EventDispatcher.prototype, {
         setTrack: function (track) {
-            var show = (!this.options.hideIfNative)
-                || (this.player.media.pluginType != 'native' || window.TextTrack.shim);
+            var that = this,
+                show = (!this.options.hideIfNative)
+                    || (this.player.media.pluginType != 'native' || window.TextTrack.shim);
             if (this.track) this.unhookTrack();
             this.cues = {};
             this.track = track;
             if (show) {
-                this.track.ready(this.render);
                 this.hookTrack();
-                this.onCueChange();
+                this.track.ready(function () {
+                    that.render();
+                    that.onCueChange();
+                });
             }
         },
         hookTrack: function () {
@@ -157,16 +163,18 @@
             var cuePrefix = this.track.id+'-cue-',
                 activeIds = $.map(this.track.activeCues||[], function (cue) { return cue.id; }),
                 cueView, id, i;
+
             for (i = 0; i < activeIds.length; i += 1) {
                 id = activeIds[i]; cueView = this.cues[id];
-                if (cueView && this.lastActiveIds.indexOf(id) === -1) {
+                console.log('ID', id, cueView);
+                if (cueView && !cueView._activated) {
                     cueView.activate();
                     if (this.options.pauseOnEnter) this.player.media.pause(); // @TODO what if seeked?
                 }
             }
             for (i = 0; i < this.lastActiveIds.length; i += 1) {
                 id = this.lastActiveIds[i]; cueView = this.cues[id];
-                if (cueView && activeIds.indexOf(id) === -1) {
+                if (cueView && cueView._activated && activeIds.indexOf(id) === -1) {
                     cueView.deactivate();
                     if (this.options.pauseOnExit) this.player.media.pause();
                 }

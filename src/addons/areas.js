@@ -81,6 +81,7 @@
                 };
             this.setAreaSizes(videoSize, area2Size);
             this.updateAreaView();
+            this.dispatchEvent({type: 'updateratio', ratio: this._areas.sizes.ratio});
         },
         getArea2Ratio: function () {
             var display = this._areas.area2[0].smileDisplay;

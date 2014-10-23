@@ -3032,8 +3032,22 @@ var smile = {};
                 doc = parser.parseFromString(str, 'text/xml');
             }
             return doc;
-        }
+        },
 
+        cleanUrl: function (url, noproto) {
+            var proto = '';
+            if (url.slice(0,7) == 'http://') {
+                if (noproto === true) proto = 'http://';
+                url = url.slice(7);
+            }
+            if (url.slice(0,8) == 'https://') {
+                if (noproto === true) proto = 'https://';
+                url = url.slice(8);
+            }
+            $.each(['#', '?', '/'], function (i, c) { if(url.indexOf(c) > -1) { url = url.split(c)[0]; } });
+            if (noproto !== true && url.slice(0,4) == 'www.') url = url.slice(4);
+            return proto+url;
+        }
 
     };
 
@@ -3130,7 +3144,10 @@ var smile = {};
         Guidelines
         1. give video a unique id (and use it's prefix for track ids)
             tracks must have ids!
-        2. first list rtmp sources, <video> will ignore them but flash will use them instead of http
+        2. first list rtmp sources, <video> will ignore them but flash will use them instead of http (IF AND ONLY IF it does not understand the type="" mimetype)
+            if you plan to use rtmp sources with actual mimetype as type attribute (usually video/mp4),
+            html5 engines will try to load the rtmp source (since they know the mimetype), but fail with unknown url scheme error!!!
+            (so either use custom mimetype (video/rtmp) or put rtmp sources behind other types of sources)
         3. use .smile-player hideNativeTracks to hide native caption/subtitles rendering
             or use .smile-display hideIfNative to only show display when native caption/subtitles aren't rendering
 
@@ -3930,7 +3947,11 @@ var smile = {};
                 smile.CueDisplay.prototype.render.call(this);
             }
             var image = this.getImage(this._width);
-            this.el.empty().append($('<img>').attr({src: image.src, title: this.data.title}));
+            if (image) {
+                this.el.empty().append($('<img>').attr({src: image.src, title: this.data.title}));
+            } else {
+                this._width = 0;
+            }
         },
         getImage: function (width) {
             var i;
@@ -4020,6 +4041,7 @@ var smile = {};
 
     smile.Player.registerExtension('postMessage', {
         initialize: function () {
+            var that = this;
             smile.util.bindAll(this, ['onWindowMessage', '_cleanObject']);
 
             this.postMessage = {
@@ -4033,6 +4055,10 @@ var smile = {};
 
             this._proxyMediaEvents();
             $.map(earlyOnWindowMessages, this.onWindowMessage);
+
+            this.addEventListener('updateratio', function (e) {
+                that._lastRatio = e.ratio;
+            });
         },
 
         /**
@@ -4091,7 +4117,7 @@ var smile = {};
 
             this._postMessage({
                 method: 'registerChild',
-                args: [this.smileReadyState, methods]
+                args: [this.smileReadyState, this._lastRatio, methods]
             });
         },
 
@@ -4156,31 +4182,16 @@ var smile = {};
         _determineTargetOrigin: function (origins) {
             origins = origins ? ($.isArray(origins) ? origins : [origins]) : [];
             var referrer = document.referrer || '',
-                cleanReferrer = this._cleanUrl(referrer),
-                cleanOrigins = $.map(origins, this._cleanUrl),
+                cleanReferrer = smile.util.cleanUrl(referrer),
+                cleanOrigins = $.map(origins, smile.util.cleanUrl),
                 targetOrigin;
 
             if (origins.indexOf('*') > -1 || $.map(cleanOrigins, function (orig) { return orig == cleanReferrer; }).indexOf(true) > -1) {
-                targetOrigin = this._cleanUrl(referrer, true);
+                targetOrigin = smile.util.cleanUrl(referrer, true);
             } else {
                 return false;
             }
             return targetOrigin;
-        },
-
-        _cleanUrl: function (url, noproto) {
-            var proto = '';
-            if (url.slice(0,7) == 'http://') {
-                if (noproto === true) proto = 'http://';
-                url = url.slice(7);
-            }
-            if (url.slice(0,8) == 'https://') {
-                if (noproto === true) proto = 'https://';
-                url = url.slice(8);
-            }
-            $.each(['#', '?', '/'], function (c) { if(url.indexOf(c) > -1) { url = url.split(c)[0]; } });
-            if (noproto !== true && url.slice(0,4) == 'www.') url = url.slice(4);
-            return proto+url;
         },
 
         _cleanObject: function (obj) {

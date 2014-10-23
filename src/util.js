@@ -239,8 +239,22 @@ var smile = {};
                 doc = parser.parseFromString(str, 'text/xml');
             }
             return doc;
-        }
+        },
 
+        cleanUrl: function (url, noproto) {
+            var proto = '';
+            if (url.slice(0,7) == 'http://') {
+                if (noproto === true) proto = 'http://';
+                url = url.slice(7);
+            }
+            if (url.slice(0,8) == 'https://') {
+                if (noproto === true) proto = 'https://';
+                url = url.slice(8);
+            }
+            $.each(['#', '?', '/'], function (i, c) { if(url.indexOf(c) > -1) { url = url.split(c)[0]; } });
+            if (noproto !== true && url.slice(0,4) == 'www.') url = url.slice(4);
+            return proto+url;
+        }
 
     };
 

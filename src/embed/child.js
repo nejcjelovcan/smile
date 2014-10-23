@@ -18,6 +18,7 @@
 
     smile.Player.registerExtension('postMessage', {
         initialize: function () {
+            var that = this;
             smile.util.bindAll(this, ['onWindowMessage', '_cleanObject']);
 
             this.postMessage = {
@@ -31,6 +32,10 @@
 
             this._proxyMediaEvents();
             $.map(earlyOnWindowMessages, this.onWindowMessage);
+
+            this.addEventListener('updateratio', function (e) {
+                that._lastRatio = e.ratio;
+            });
         },
 
         /**
@@ -89,7 +94,7 @@
 
             this._postMessage({
                 method: 'registerChild',
-                args: [this.smileReadyState, methods]
+                args: [this.smileReadyState, this._lastRatio, methods]
             });
         },
 
@@ -154,31 +159,16 @@
         _determineTargetOrigin: function (origins) {
             origins = origins ? ($.isArray(origins) ? origins : [origins]) : [];
             var referrer = document.referrer || '',
-                cleanReferrer = this._cleanUrl(referrer),
-                cleanOrigins = $.map(origins, this._cleanUrl),
+                cleanReferrer = smile.util.cleanUrl(referrer),
+                cleanOrigins = $.map(origins, smile.util.cleanUrl),
                 targetOrigin;
 
             if (origins.indexOf('*') > -1 || $.map(cleanOrigins, function (orig) { return orig == cleanReferrer; }).indexOf(true) > -1) {
-                targetOrigin = this._cleanUrl(referrer, true);
+                targetOrigin = smile.util.cleanUrl(referrer, true);
             } else {
                 return false;
             }
             return targetOrigin;
-        },
-
-        _cleanUrl: function (url, noproto) {
-            var proto = '';
-            if (url.slice(0,7) == 'http://') {
-                if (noproto === true) proto = 'http://';
-                url = url.slice(7);
-            }
-            if (url.slice(0,8) == 'https://') {
-                if (noproto === true) proto = 'https://';
-                url = url.slice(8);
-            }
-            $.each(['#', '?', '/'], function (c) { if(url.indexOf(c) > -1) { url = url.split(c)[0]; } });
-            if (noproto !== true && url.slice(0,4) == 'www.') url = url.slice(4);
-            return proto+url;
         },
 
         _cleanObject: function (obj) {

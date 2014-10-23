@@ -229,7 +229,11 @@
                 smile.CueDisplay.prototype.render.call(this);
             }
             var image = this.getImage(this._width);
-            this.el.empty().append($('<img>').attr({src: image.src, title: this.data.title}));
+            if (image) {
+                this.el.empty().append($('<img>').attr({src: image.src, title: this.data.title}));
+            } else {
+                this._width = 0;
+            }
         },
         getImage: function (width) {
             var i;

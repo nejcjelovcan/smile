@@ -17,7 +17,10 @@
         Guidelines
         1. give video a unique id (and use it's prefix for track ids)
             tracks must have ids!
-        2. first list rtmp sources, <video> will ignore them but flash will use them instead of http
+        2. first list rtmp sources, <video> will ignore them but flash will use them instead of http (IF AND ONLY IF it does not understand the type="" mimetype)
+            if you plan to use rtmp sources with actual mimetype as type attribute (usually video/mp4),
+            html5 engines will try to load the rtmp source (since they know the mimetype), but fail with unknown url scheme error!!!
+            (so either use custom mimetype (video/rtmp) or put rtmp sources behind other types of sources)
         3. use .smile-player hideNativeTracks to hide native caption/subtitles rendering
             or use .smile-display hideIfNative to only show display when native caption/subtitles aren't rendering
 

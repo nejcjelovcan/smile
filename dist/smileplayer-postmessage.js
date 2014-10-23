@@ -317,8 +317,22 @@ var smile = {};
                 doc = parser.parseFromString(str, 'text/xml');
             }
             return doc;
-        }
+        },
 
+        cleanUrl: function (url, noproto) {
+            var proto = '';
+            if (url.slice(0,7) == 'http://') {
+                if (noproto === true) proto = 'http://';
+                url = url.slice(7);
+            }
+            if (url.slice(0,8) == 'https://') {
+                if (noproto === true) proto = 'https://';
+                url = url.slice(8);
+            }
+            $.each(['#', '?', '/'], function (i, c) { if(url.indexOf(c) > -1) { url = url.split(c)[0]; } });
+            if (noproto !== true && url.slice(0,4) == 'www.') url = url.slice(4);
+            return proto+url;
+        }
 
     };
 
@@ -424,9 +438,9 @@ var smile = {};
 
     $.extend(smile.PostmessagePlayer.prototype, EventDispatcher.prototype, {
         initialize: function () {
-            smile.util.bindAll(this, ['onWindowMessage', 'onUpdateRatio']);
+            smile.util.bindAll(this, ['onWindowMessage', 'onUpdateRatio', 'onResize']);
 
-            this.targetOrigin = this.$node.attr('src').split('/').slice(0,3).join('/');
+            this.targetOrigin = smile.util.cleanUrl(this.$node.attr('src'), true)||smile.util.cleanUrl(document.location.href, true);
             this.id = this.$node.attr('id')||('smileEmbed' + (''+Math.random()).slice(2,8));
             this.$container = this.$node.parent();
             if (!this.$container.hasClass('smile-embed')) {
@@ -437,9 +451,12 @@ var smile = {};
             this.addEventListener('updateratio', this.onUpdateRatio);
 
             var that = this;
+            that._postMessage({method: 'registerParent'});
             this.$node.load(function() {
                 that._postMessage({method: 'registerParent'});
             });
+
+            $(window).resize($.debounce(250, this.onResize));
         },
         onWindowMessage: function (event) {
             var data, dispatch;
@@ -464,15 +481,24 @@ var smile = {};
         },
         onUpdateRatio: function (e) {
             // @TODO we get ratio of video only (controls aren't counted!)
+            this._lastRatio = (e && e.ratio) || this._lastRatio;
+            if (!this._lastRatio) return;
             var w = this.$node.width(),
-                ratio = w/((w/e.ratio) + 40); /* controls height */
+                ratio = w/((w/this._lastRatio) + 40); /* controls height */
             smile.util.addCssRule('#'+this.$container.attr('id')+':after', 'padding-top: '+(100/ratio)+'%;');
+        },
+        onResize: function () {
+            this.onUpdateRatio();
         },
         registerChild: function (args, source) {
             var smileReadyState = args[0],
-                methods = args[1];
+                ratio = args[1];
+                methods = args[2];
 
             this._setupMethods(this, methods);
+            if (ratio) {
+                this.onUpdateRatio({ratio: ratio});
+            }
         },
         _setupMethods: function (obj, methods, prefix) {
             var that = this, pk;
@@ -509,7 +535,7 @@ var smile = {};
             }
             this.node.contentWindow.postMessage(JSON.stringify(data), this.targetOrigin);
             return promise;
-        },
+        }
 
     });
 

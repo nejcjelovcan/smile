@@ -8,7 +8,7 @@
     Parses WebVVT format which should be formatted as
     ================================
     WEBVTT
-    
+
     1
     00:00:01,1 --> 00:00:05,000
     A line of text
@@ -16,7 +16,7 @@
     2
     00:01:15,1 --> 00:02:05,000
     A second line of text
-    
+
     ===============================
 
     Adapted from: http://www.delphiki.com/html5/playr
@@ -28,7 +28,7 @@
             pattern_timecode: /^([0-9]{2}:[0-9]{2}:[0-9]{2}([,.][0-9]{1,3})?) --\> ([0-9]{2}:[0-9]{2}:[0-9]{2}([,.][0-9]{3})?)(.*)$/,
 
             parse: function(trackText) {
-                var 
+                var
                     i = 0,
                     lines = mejs.TrackFormatParser.split2(trackText, /\r?\n/),
                     entries = {text:[], times:[], ids:[]},
@@ -55,7 +55,9 @@
                                 text = text + '\n' + lines[i];
                                 i++;
                             }
-                            text = $.trim(text).replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a href='$1' target='_blank'>$1</a>");
+                            text = $.trim(text);
+                            // cheap trick - if not json, replace urls with link html
+                            if (text.substr(0,1) != '{') text = text.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a href='$1' target='_blank'>$1</a>");
                             // Text is in a different array so I can use .join
                             entries.text.push(text);
                             entries.ids.push(idcode ? idcode[0] : '');
@@ -75,7 +77,7 @@
         dfxp: {
             parse: function(trackText) {
                 trackText = $(trackText).filter("tt");
-                var 
+                var
                     i = 0,
                     container = trackText.children("div").eq(0),
                     lines = container.find("p"),
@@ -111,7 +113,7 @@
                     if (styles) {
                         style = "";
                         for (var _style in styles) {
-                            style += _style + ":" + styles[_style] + ";";                   
+                            style += _style + ":" + styles[_style] + ";";
                         }
                     }
                     if (style) _temp_times.style = style;
@@ -130,13 +132,13 @@
             return text.split(regex);
         }
     };
-    
+
     // test for browsers with bad String.split method.
     if ('x\n\ny'.split(/\n/gi).length != 3) {
         // add super slow IE8 and below version
         mejs.TrackFormatParser.split2 = function(text, regex) {
-            var 
-                parts = [], 
+            var
+                parts = [],
                 chunk = '',
                 i;
 

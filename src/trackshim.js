@@ -170,9 +170,9 @@
             // poll for readyState changes in FF 31/32
             if (isFirefox(31) || isFirefox(32)) {
                 var interval = setInterval(function () {
-                    var state = (node._readyState||node.readyState);
+                    var state = (that.node._readyState||that.node.readyState);
                     if (state > 1) {
-                        if (state === 2) node.dispatchEvent(new mejs.TrackEvent('load', {track: that}));
+                        if (state === 2) that.node.dispatchEvent(new mejs.TrackEvent('load', {track: that}));
                         clearInterval(interval);
                     }
                 }, 1000);
@@ -180,9 +180,9 @@
 
             this._bound_update = function (e) { that._update(e); };
 
-            // metadata should be showing by default
+            // metadata should be hidden by default (firefox is so smart that it will show "showing" metadata tracks as subtitles)
             if (this.kind == 'metadata' && this.getMode() == 'disabled') {
-                this.setMode('showing');
+                this.setMode('hidden');
             }
         },
         setMode: function (mode) {

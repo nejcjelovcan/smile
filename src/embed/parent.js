@@ -127,4 +127,15 @@
 
     });
 
+    $.fn.smileEmbed = function (options) {
+        $(this).each(function () {
+            $(this).data('smileEmbed') ||
+                ($(this).data('smileEmbed', new smile.PostmessagePlayer($(this), options)));
+        });
+    };
+
+    $(function () {
+        $('.smile-embed').smileEmbed();
+    });
+
 }(jQuery, smile));

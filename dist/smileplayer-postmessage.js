@@ -332,6 +332,10 @@ var smile = {};
             $.each(['#', '?', '/'], function (i, c) { if(url.indexOf(c) > -1) { url = url.split(c)[0]; } });
             if (noproto !== true && url.slice(0,4) == 'www.') url = url.slice(4);
             return proto+url;
+        },
+
+        isFirefox: function (version) {
+            return (new RegExp('Firefox/'+(version||'')).test(navigator.userAgent));
         }
 
     };
@@ -537,6 +541,17 @@ var smile = {};
             return promise;
         }
 
+    });
+
+    $.fn.smileEmbed = function (options) {
+        $(this).each(function () {
+            $(this).data('smileEmbed') ||
+                ($(this).data('smileEmbed', new smile.PostmessagePlayer($(this), options)));
+        });
+    };
+
+    $(function () {
+        $('.smile-embed').smileEmbed();
     });
 
 }(jQuery, smile));

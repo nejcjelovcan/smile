@@ -4,6 +4,32 @@
             this._controls = { container: this.$container.find('.smile-controls') };
             this._controls.container[0].smile = this;
         },
+        isFullscreen: function () {
+            return document.fullScreen||document.mozFullScreen||document.webkitIsFullScreen||this.$container.hasClass('smile-fullscreen-fake');
+        },
+        enterFullscreen: function () {
+            // @TODO test in all browsers, check prefixes
+            if (player.container.webkitRequestFullScreen) player.container.webkitRequestFullScreen();
+            else if (player.container.mozRequestFullScreen) player.container.mozRequestFullScreen();
+            else if (player.container.msRequestFullscreen) player.container.msRequestFullscreen();
+            else if (player.container.requestFullScreen) player.container.requestFullScreen();
+            else {
+                this.$container.addClass('smile-fullscreen-fake smile-fullscreen');
+                this._controls.setFullscreenButton();
+            }
+            setTimeout(this.resize, 0);
+        },
+        exitFullscreen: function () {
+            if (document.cancelFullScreen) document.cancelFullScreen();
+            else if (document.webkitCancelFullScreen) document.webkitCancelFullScreen();
+            else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
+            else {
+                this.$container.removeClass('smile-fullscreen-fake smile-fullscreen');
+                this._controls.setFullscreenButton();
+            }
+            setTimeout(this.resize, 0);
+        },
         ready: function () {
             var player = this,
                 ctrl = this._controls,
@@ -23,7 +49,7 @@
                         if (player.media.volume < 0.33) cls = 'vol1';
                         if (player.media.volume == 0) cls = 'vol0';
                     }
-                    
+
                     ctrl.container.find('.smile-button-volume')
                         .removeClass('vol0 vol1 vol2 vol3')
                         .addClass(cls);
@@ -34,7 +60,7 @@
                         .addClass(cls == 'vol0' ? 'fa-volume-off' : (cls == 'vol3' ? 'fa-volume-up' : 'fa-volume-down'));
                 },
                 setFullscreenButton = $.delay(100, function (event) {
-                    var fs = document.fullScreen||document.mozFullScreen||document.webkitIsFullScreen;
+                    var fs = player.isFullscreen();
                     ctrl.container.find('.smile-button-fullscreen')
                         .removeClass('open close')
                         .addClass(fs ? 'close' : 'open');
@@ -68,6 +94,10 @@
                     if (prog < 0) prog = 0;
                     if (prog > 1) prog = 1;
                     return prog;
+                },
+                onKeydown = function (event) {
+                    if (event.keyCode == 27 && player.isFullscreen()) player.exitFullscreen();
+                    // @TODO space (un)pauses - but not if focused input element
                 };
             this.media.addEventListener('timeupdate', function () {
                 setTimeProgress();
@@ -107,17 +137,11 @@
             });
             ctrl.container.on('click', '.smile-button-fullscreen,.smile-button-fullscreen.open', function (event) {
                 event.preventDefault();
-                if (player.container.webkitRequestFullScreen) player.container.webkitRequestFullScreen();
-                else if (player.container.mozRequestFullScreen) player.container.mozRequestFullScreen();
-                else if (player.container.requestFullscreen) player.container.requestFullscreen();
-                else if (player.container.requestFullScreen) player.container.requestFullScreen();
+                player.enterFullscreen();
             });
             ctrl.container.on('click', '.smile-button-fullscreen.close', function (event) {
                 event.preventDefault();
-                if (document.cancelFullScreen) document.cancelFullScreen();
-                else if (document.webkitCancelFullScreen) document.webkitCancelFullScreen();
-                else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
-                else if (document.exitFullscreen) document.exitFullscreen();
+                player.exitFullscreen();
             });
             ctrl.container.on('mouseup', '.smile-time-progress', function (event) {
                 if (!player.media.duration) return;
@@ -133,15 +157,29 @@
             document.addEventListener("fullscreenchange", setFullscreenButton);
             document.addEventListener("webkitfullscreenchange", setFullscreenButton);
             document.addEventListener("mozfullscreenchange", setFullscreenButton);
+            document.addEventListener("keydown", onKeydown);
 
             setPlayButton('play');
             setFullscreenButton();
 
             ctrl.resize = function () {
+                // max height (never higher than window)
                 player.$container.find('.smile-media, .smile-area, video')
                     .css('max-height', ($(window).height()-40)+'px');
+
+                // fullscreen vertical alignment (not automatic in firefox @TODO safari, IE)
+                var fs = player.isFullscreen();
+                if (fs && (smile.util.isFirefox()||player.$container.hasClass('smile-fullscreen-fake'))) {
+                    var el = player.$container.find('.smile-media, .smile-area-wrapper'),
+                        h = el.height() + (player.$container.find('.smile-controls').height()||0),
+                        wh = $(window).height();
+                    player.$container.css('padding-top', (wh-h)/2);
+                } else {
+                    player.$container.css('padding-top', 0);
+                }
             };
             ctrl.resize();
+            ctrl.setFullscreenButton = setFullscreenButton;
             this.addEventListener('resize', ctrl.resize);
         }
     });

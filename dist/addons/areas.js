@@ -83,6 +83,14 @@
             this.updateAreaView();
             this.dispatchEvent({type: 'updateratio', ratio: this._areas.sizes.ratio});
         },
+        updateSize: function () {
+            var embed = this.$container.find('embed');
+            if (embed.length) {
+                var w = this._areas.area1.width(),
+                    h = w*(1/this.getVideoRatio());
+                this.media.setVideoSize(w, h);
+            }
+        },
         getArea2Ratio: function () {
             var display = this._areas.area2[0].smileDisplay;
             if (display && display.getRatio) {

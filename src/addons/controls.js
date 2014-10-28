@@ -9,10 +9,10 @@
         },
         enterFullscreen: function () {
             // @TODO test in all browsers, check prefixes
-            if (player.container.webkitRequestFullScreen) player.container.webkitRequestFullScreen();
-            else if (player.container.mozRequestFullScreen) player.container.mozRequestFullScreen();
-            else if (player.container.msRequestFullscreen) player.container.msRequestFullscreen();
-            else if (player.container.requestFullScreen) player.container.requestFullScreen();
+            if (this.container.webkitRequestFullScreen) this.container.webkitRequestFullScreen();
+            else if (this.container.mozRequestFullScreen) this.container.mozRequestFullScreen();
+            else if (this.container.msRequestFullscreen) this.container.msRequestFullscreen();
+            else if (this.container.requestFullScreen) this.container.requestFullScreen();
             else {
                 this.$container.addClass('smile-fullscreen-fake smile-fullscreen');
                 this._controls.setFullscreenButton();

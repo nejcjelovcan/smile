@@ -804,7 +804,7 @@ EventDispatcher.prototype = {
             // already inited text tracks at .createPlugin (see above)
 
         // html5 but shimmed track api
-        } else if (window.TextTrack.shim) {
+        } else if (window.TextTrack && window.TextTrack.shim) {
             console.info("Initializing textrack shim");
             $.extend(api, mejs.MediaElementTracksTrait);
             api._initTextTracks(api, true);
@@ -1077,9 +1077,10 @@ var smile = {};
         },
 
         addCssRule: function (selector, css) {
-            if (document.styleSheets[0].addRule) document.styleSheets[0].addRule(selector, css);
-            else if (document.styleSheets[0].insertRule) {
-                // firefox same origin bullshit
+            if (document.styleSheets && document.styleSheets[0] && document.styleSheets[0].addRule) {
+                document.styleSheets[0].addRule(selector, css);
+            // } else if (document.styleSheets[0].insertRule) { // firefox has insertRule but complicates with same origins
+            } else {
                 var style = document.createElement('style');
                 style.innerHTML = selector+'{'+css+'}';
                 document.getElementsByTagName('head')[0].appendChild(style);
@@ -1370,6 +1371,7 @@ var smile = {};
 
         // =======================
         // CONSTRUCT MEDIA ELEMENT
+
         mejs.MediaElement(this.$media[0], $.extend({}, this.options, {
             success: this.onMediaReady,
             error: this.onHandleError
@@ -1417,15 +1419,17 @@ var smile = {};
             this.dispatchEvent({type: 'load', target: this});
             this._loadtracksFired = false;
 
-            // hook tracks
-            for (var i = 0; i < this.media.textTracks.length; i += 1) {
-                this.media.textTracks[i].ready(function () {
-                    if (!that._loadtracksFired && that.areTracksReady()) {
-                        that._loadtracksFired = true;
-                        that.dispatchEvent({type: 'loadtracks', target: that});
-                    }
-                });
-            }
+            setTimeout(function () {
+                // hook tracks
+                for (var i = 0; i < that.media.textTracks.length; i += 1) {
+                    that.media.textTracks[i].ready(function () {
+                        if (!that._loadtracksFired && that.areTracksReady()) {
+                            that._loadtracksFired = true;
+                            that.dispatchEvent({type: 'loadtracks', target: that});
+                        }
+                    });
+                }
+            }, 0);
         },
         onHandleError: function (e) {
             this.smileReadyState = 3;

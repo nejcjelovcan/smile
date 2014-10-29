@@ -570,7 +570,7 @@
             // already inited text tracks at .createPlugin (see above)
 
         // html5 but shimmed track api
-        } else if (window.TextTrack.shim) {
+        } else if (window.TextTrack && window.TextTrack.shim) {
             console.info("Initializing textrack shim");
             $.extend(api, mejs.MediaElementTracksTrait);
             api._initTextTracks(api, true);

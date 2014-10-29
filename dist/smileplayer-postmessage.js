@@ -291,9 +291,10 @@ var smile = {};
         },
 
         addCssRule: function (selector, css) {
-            if (document.styleSheets[0].addRule) document.styleSheets[0].addRule(selector, css);
-            else if (document.styleSheets[0].insertRule) {
-                // firefox same origin bullshit
+            if (document.styleSheets && document.styleSheets[0] && document.styleSheets[0].addRule) {
+                document.styleSheets[0].addRule(selector, css);
+            // } else if (document.styleSheets[0].insertRule) { // firefox has insertRule but complicates with same origins
+            } else {
                 var style = document.createElement('style');
                 style.innerHTML = selector+'{'+css+'}';
                 document.getElementsByTagName('head')[0].appendChild(style);

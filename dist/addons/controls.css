@@ -77,3 +77,7 @@
         display: none;
     }
 }
+
+.smile-ios .smile-volume-progress, .smile-ios .smile-button-volume {
+    display: none;
+}

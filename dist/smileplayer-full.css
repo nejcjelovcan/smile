@@ -37,6 +37,10 @@
     height: auto !important;
 }
 
+.smile-player.smile-ios video {
+    height: 100% !important;
+}
+
 .smile-player div.me-plugin embed {
     width: 100%;
     height: 100%;
@@ -156,6 +160,9 @@
     }
 }
 
+.smile-ios .smile-volume-progress, .smile-ios .smile-button-volume {
+    display: none;
+}
 .smile-area-wrapper {
     width: 100%;
     position: relative;

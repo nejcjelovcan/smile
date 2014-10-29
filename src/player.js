@@ -168,6 +168,7 @@
 
         // =======================
         // CONSTRUCT MEDIA ELEMENT
+
         mejs.MediaElement(this.$media[0], $.extend({}, this.options, {
             success: this.onMediaReady,
             error: this.onHandleError
@@ -215,15 +216,17 @@
             this.dispatchEvent({type: 'load', target: this});
             this._loadtracksFired = false;
 
-            // hook tracks
-            for (var i = 0; i < this.media.textTracks.length; i += 1) {
-                this.media.textTracks[i].ready(function () {
-                    if (!that._loadtracksFired && that.areTracksReady()) {
-                        that._loadtracksFired = true;
-                        that.dispatchEvent({type: 'loadtracks', target: that});
-                    }
-                });
-            }
+            setTimeout(function () {
+                // hook tracks
+                for (var i = 0; i < that.media.textTracks.length; i += 1) {
+                    that.media.textTracks[i].ready(function () {
+                        if (!that._loadtracksFired && that.areTracksReady()) {
+                            that._loadtracksFired = true;
+                            that.dispatchEvent({type: 'loadtracks', target: that});
+                        }
+                    });
+                }
+            }, 0);
         },
         onHandleError: function (e) {
             this.smileReadyState = 3;
